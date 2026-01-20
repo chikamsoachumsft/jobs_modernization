@@ -1,0 +1,18 @@
+param environment string = 'dev'
+param location string = resourceGroup().location
+
+module infrastructure './main.bicep' = {
+  name: 'jobsite-infrastructure'
+  params: {
+    location: location
+    environment: environment
+    appServicePlanSkuName: environment == 'prod' ? 'P1V2' : 'B1'
+    enableApplicationInsights: true
+  }
+}
+
+output resourceIds object = {
+  appServiceUrl: infrastructure.outputs.appServiceUrl
+  sqlServerFqdn: infrastructure.outputs.sqlServerFqdn
+  keyVaultUri: infrastructure.outputs.keyVaultUri
+}
