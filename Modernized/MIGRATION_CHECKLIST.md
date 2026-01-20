@@ -1,6 +1,7 @@
 # Migration Checklist
 
 ## Phase 1: Project Setup
+
 - [ ] Create ASP.NET Core 8.0 solution file
 - [ ] Create project files for each layer
 - [ ] Set up NuGet package management
@@ -8,6 +9,7 @@
 - [ ] Set up git repository structure
 
 ## Phase 2: Database & ORM
+
 - [ ] Analyze legacy database schema
 - [ ] Create Entity Framework Core models
 - [ ] Create DbContext
@@ -17,6 +19,7 @@
 - [ ] Test database connectivity
 
 ## Phase 3: Authentication & Authorization
+
 - [ ] Implement ASP.NET Core Identity setup
 - [ ] Create User and Role entities (migration from membership)
 - [ ] Migrate user data from legacy system
@@ -25,6 +28,7 @@
 - [ ] Test authentication flows
 
 ## Phase 4: Core Services
+
 - [ ] Implement ICompanyService
 - [ ] Implement IJobPostingService
 - [ ] Implement IJobSeekerService
@@ -34,6 +38,7 @@
 - [ ] Implement AutoMapper for DTO mapping
 
 ## Phase 5: API Layer
+
 - [ ] Create CompaniesController
 - [ ] Create JobPostingsController
 - [ ] Create JobSeekersController
@@ -45,6 +50,7 @@
 - [ ] Configure CORS
 
 ## Phase 6: Data Migration
+
 - [ ] Create data migration strategy
 - [ ] Implement legacy data ETL process
 - [ ] Validate migrated data
@@ -52,6 +58,7 @@
 - [ ] Test data integrity
 
 ## Phase 7: Testing
+
 - [ ] Write unit tests for services
 - [ ] Write integration tests for API endpoints
 - [ ] Write repository tests
@@ -59,6 +66,7 @@
 - [ ] Performance testing
 
 ## Phase 8: Documentation
+
 - [ ] API documentation (Swagger/OpenAPI)
 - [ ] Architecture documentation
 - [ ] Database schema documentation
@@ -66,6 +74,7 @@
 - [ ] Environment setup guide
 
 ## Phase 9: Security
+
 - [ ] Implement input validation
 - [ ] Add rate limiting
 - [ ] Implement HTTPS/TLS
@@ -74,6 +83,7 @@
 - [ ] SQL injection prevention review
 
 ## Phase 10: Deployment
+
 - [ ] Create Docker configuration
 - [ ] Set up CI/CD pipeline
 - [ ] Configure production appsettings
@@ -82,9 +92,9 @@
 - [ ] Go-live preparation
 
 ## Phase 11: Post-Migration
+
 - [ ] Monitor application performance
 - [ ] Fix production issues
 - [ ] Gather user feedback
 - [ ] Optimize based on usage patterns
 - [ ] Plan for legacy system retirement
-

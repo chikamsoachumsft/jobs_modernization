@@ -7,6 +7,7 @@
 **Problem**: `Cannot open database requested by the login`
 
 **Solution**:
+
 ```bash
 # Verify connection string in appsettings.json
 # Check SQL Server is running
@@ -21,6 +22,7 @@ dotnet ef database update --project src/JobSite.Infrastructure -v
 **Problem**: `Address already in use`
 
 **Solution**:
+
 ```bash
 # Find process using port 5000
 lsof -i :5000
@@ -37,6 +39,7 @@ dotnet run --project src/JobSite.Api -- --urls "http://localhost:5001"
 **Problem**: `An error occurred while accessing the Microsoft.EntityFrameworkCore assembly`
 
 **Solution**:
+
 ```bash
 # Remove pending migrations
 dotnet ef migrations remove --project src/JobSite.Infrastructure
@@ -53,6 +56,7 @@ dotnet ef migrations add InitialCreate --project src/JobSite.Infrastructure
 **Problem**: `Unable to find package`
 
 **Solution**:
+
 ```bash
 # Clear NuGet cache
 dotnet nuget locals all --clear
@@ -69,6 +73,7 @@ dotnet tool update --global dotnet-ef
 **Problem**: `Cannot connect to SQL Server container`
 
 **Solution**:
+
 ```bash
 # Check container status
 docker-compose ps
@@ -120,11 +125,13 @@ dotnet ef migrations add DescriptiveName --project src/JobSite.Infrastructure
 ### Q: How do I debug the application?
 
 **Visual Studio**:
+
 1. Set breakpoint
 2. Press F5
 3. Application starts in debug mode
 
 **VS Code**:
+
 1. Click Run and Debug (Ctrl+Shift+D)
 2. Select ".NET 5+ and .NET Core" configuration
 3. Press F5
@@ -170,11 +177,13 @@ dotnet build /p:EnforceCodeStyleInBuild=true
 ### Slow Startup
 
 **Check**:
+
 - Database migrations on startup
 - Large model configurations
 - Dependency injection container size
 
 **Solution**:
+
 ```csharp
 // In Program.cs, avoid migration on startup
 // services.AddMigration(); // Remove this
@@ -183,11 +192,13 @@ dotnet build /p:EnforceCodeStyleInBuild=true
 ### Slow Queries
 
 **Check**:
+
 - Missing indexes
 - N+1 query problems
 - Large result sets without pagination
 
 **Solution**:
+
 ```csharp
 // Use .Include() for related entities
 var company = await _context.Companies
@@ -206,6 +217,7 @@ var results = await query
 ### SQL Injection Risk
 
 **Always use parameterized queries**:
+
 ```csharp
 // ❌ AVOID
 var sql = $"SELECT * FROM Companies WHERE Name = '{name}'";
@@ -220,6 +232,7 @@ var result = context.Companies
 ### Hardcoded Secrets
 
 **Use User Secrets or Key Vault**:
+
 ```bash
 # User Secrets (development)
 dotnet user-secrets set "Jwt:Secret" "value"
@@ -231,8 +244,8 @@ dotnet user-secrets set "Jwt:Secret" "value"
 ### Missing HTTPS
 
 **Always enable HTTPS**:
+
 ```csharp
 // In Program.cs
 app.UseHttpsRedirection();
 ```
-

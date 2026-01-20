@@ -5,19 +5,23 @@ This folder contains the modernized version of the legacy Job Site Starter Kit, 
 ## Project Structure
 
 ### `/src` - Source Code
+
 - **JobSite.Api** - ASP.NET Core REST API with controllers and middleware
 - **JobSite.Core** - Domain models and data transfer objects (DTOs)
 - **JobSite.Application** - Business logic, services, and interfaces
 - **JobSite.Infrastructure** - Data access, Entity Framework, authentication, external services
 
 ### `/tests` - Test Projects
+
 - **JobSite.Tests.Unit** - Unit tests for services and business logic
 - **JobSite.Tests.Integration** - Integration tests for database and API
 
 ### `/docs` - Documentation
+
 - **migration** - Migration guides and breaking changes documentation
 
 ### `/config` - Configuration
+
 - Environment-specific configuration files
 - Deployment settings
 
@@ -61,4 +65,3 @@ Database
 - [ ] Unit tests
 - [ ] Integration tests
 - [ ] API documentation (Swagger/OpenAPI)
-

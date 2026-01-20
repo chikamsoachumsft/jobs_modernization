@@ -86,7 +86,8 @@ if ($hasAzPs) {
     if ($SubscriptionId) {
         Set-AzContext -SubscriptionId $SubscriptionId | Out-Null
     }
-} else {
+}
+else {
     $account = az account show 2>$null
     if (-not $account) {
         Write-Host "Please login to Azure..."
@@ -109,12 +110,13 @@ if ($hasAzPs) {
     if (-not $rg) {
         Write-Host "Creating resource group: $ResourceGroupName in $Location"
         $rg = New-AzResourceGroup -Name $ResourceGroupName -Location $Location -Tags @{
-            environment = $Environment
-            application = 'jobsite'
+            environment  = $Environment
+            application  = 'jobsite'
             deployedDate = Get-Date -Format 'u'
         }
     }
-} else {
+}
+else {
     $rg = az group show --name $ResourceGroupName 2>$null
     
     if (-not $rg) {

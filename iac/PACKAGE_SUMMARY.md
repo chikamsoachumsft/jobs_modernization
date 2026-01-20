@@ -10,7 +10,7 @@ This complete Bicep deployment package enables you to deploy the legacy ASP.NET 
 iac/
 ├── main.bicep                          (450+ lines) - Complete Bicep template
 ├── main.dev.bicepparam                 - Development environment parameters
-├── main.staging.bicepparam             - Staging environment parameters  
+├── main.staging.bicepparam             - Staging environment parameters
 ├── main.prod.bicepparam                - Production environment parameters
 ├── Deploy-Bicep.ps1                    (180+ lines) - PowerShell deployment script
 ├── deploy-bicep.sh                     (140+ lines) - Bash deployment script
@@ -24,17 +24,17 @@ iac/
 
 ### Azure Resources Created
 
-| Resource | Details | SKU |
-|----------|---------|-----|
-| **App Service** | Hosts your .NET application | B2/S1/P1V2 (configurable) |
-| **App Service Plan** | Compute resources | Based on SKU |
-| **SQL Server** | Database server | v12.0 |
-| **SQL Database** | Your application database | Standard/Premium (configurable) |
-| **Key Vault** | Secrets management | Standard tier |
-| **Application Insights** | Application monitoring | Basic tier |
-| **Log Analytics Workspace** | Centralized logging | 30-day retention |
-| **Storage Account** | Diagnostics & blobs | Standard LRS |
-| **Managed Identity** | Secure credential access | System assigned |
+| Resource                    | Details                     | SKU                             |
+| --------------------------- | --------------------------- | ------------------------------- |
+| **App Service**             | Hosts your .NET application | B2/S1/P1V2 (configurable)       |
+| **App Service Plan**        | Compute resources           | Based on SKU                    |
+| **SQL Server**              | Database server             | v12.0                           |
+| **SQL Database**            | Your application database   | Standard/Premium (configurable) |
+| **Key Vault**               | Secrets management          | Standard tier                   |
+| **Application Insights**    | Application monitoring      | Basic tier                      |
+| **Log Analytics Workspace** | Centralized logging         | 30-day retention                |
+| **Storage Account**         | Diagnostics & blobs         | Standard LRS                    |
+| **Managed Identity**        | Secure credential access    | System assigned                 |
 
 ### Network & Security
 
@@ -44,7 +44,7 @@ iac/
 ✅ **Key Vault** protects sensitive data  
 ✅ **Managed Identity** for secure credential access  
 ✅ **Encryption** enabled on storage  
-✅ **Diagnostics** and monitoring enabled  
+✅ **Diagnostics** and monitoring enabled
 
 ## 🚀 Deployment Time
 
@@ -54,17 +54,18 @@ iac/
 
 ## 💰 Estimated Monthly Costs
 
-| Environment | Cost | Notes |
-|-------------|------|-------|
-| **Dev** | ~$90 | Entry-level, suitable for testing |
-| **Staging** | ~$125 | Pre-production simulation |
-| **Production** | ~$420 | High availability, Premium SQL |
+| Environment    | Cost  | Notes                             |
+| -------------- | ----- | --------------------------------- |
+| **Dev**        | ~$90  | Entry-level, suitable for testing |
+| **Staging**    | ~$125 | Pre-production simulation         |
+| **Production** | ~$420 | High availability, Premium SQL    |
 
-*Estimates based on Azure East US pricing as of January 2024*
+_Estimates based on Azure East US pricing as of January 2024_
 
 ## ✨ Key Features
 
 ### Deployment Automation
+
 - ✅ Single-command deployment
 - ✅ Parameter-driven configuration
 - ✅ Multi-environment support (dev/staging/prod)
@@ -73,6 +74,7 @@ iac/
 - ✅ Comprehensive error handling
 
 ### Monitoring & Diagnostics
+
 - ✅ Application Insights for performance monitoring
 - ✅ Log Analytics for centralized logging
 - ✅ Diagnostic settings on all resources
@@ -80,6 +82,7 @@ iac/
 - ✅ 7-day log retention (configurable)
 
 ### Database Management
+
 - ✅ Automated SQL backups
 - ✅ Weekly backups retained for 4 weeks
 - ✅ Monthly backups retained for 12 months
@@ -87,6 +90,7 @@ iac/
 - ✅ Firewall rules for Azure services
 
 ### Security
+
 - ✅ HTTPS only App Service
 - ✅ Key Vault for secrets
 - ✅ Managed Identity for authentication
@@ -132,6 +136,7 @@ param sqlServiceObjective = 'P2'      # Higher performance
 ```
 
 Available options:
+
 - **App Service**: B1, B2, B3, S1, S2, S3, P1V2, P2V2, P3V2
 - **SQL Database**: S0, S1, S2, S3, P1, P2, P4, P6, P11, P15
 
@@ -183,16 +188,19 @@ az appservice plan update \
 ## 🆘 Troubleshooting
 
 ### Deployment Fails
+
 1. Run validation: `az deployment group validate --resource-group <rg> --template-file main.bicep --parameters main.dev.bicepparam`
 2. Check error in Azure Portal → Resource Groups → Deployments
 3. Review logs: `az deployment operation group list --resource-group <rg> --name <deployment-name>`
 
 ### SQL Connection Failed
+
 1. Verify connection string in web.config
 2. Check firewall rules in SQL Server
 3. Test connectivity: `sqlcmd -S <server>.database.windows.net -U sqladmin -P <password> -d jobsitedb -Q "SELECT 1"`
 
 ### App Shows 500 Errors
+
 1. Review Application Insights errors
 2. Check app logs: `az webapp log tail --resource-group <rg> --name <app-name>`
 3. Verify web.config is correct
@@ -245,11 +253,13 @@ If deployment fails:
 ## 🔄 Rollback / Cleanup
 
 ### Delete Everything
+
 ```bash
 az group delete --name jobsite-dev-rg --yes --no-wait
 ```
 
 ### Delete Specific Resources
+
 ```bash
 # Just the App Service
 az webapp delete --resource-group jobsite-dev-rg --name jobsite-app-dev-xxxxx
@@ -305,24 +315,24 @@ az monitor metrics alert create \
 
 ## 📝 Maintenance Schedule
 
-| Task | Frequency | Responsibility |
-|------|-----------|-----------------|
-| Backup verification | Weekly | DevOps |
-| Security patches | Monthly | DevOps |
-| Performance review | Monthly | Operations |
-| Cost analysis | Monthly | Finance |
-| Disaster recovery test | Quarterly | DevOps |
-| Capacity planning | Quarterly | Architecture |
+| Task                   | Frequency | Responsibility |
+| ---------------------- | --------- | -------------- |
+| Backup verification    | Weekly    | DevOps         |
+| Security patches       | Monthly   | DevOps         |
+| Performance review     | Monthly   | Operations     |
+| Cost analysis          | Monthly   | Finance        |
+| Disaster recovery test | Quarterly | DevOps         |
+| Capacity planning      | Quarterly | Architecture   |
 
 ## 📄 Version Information
 
-| Item | Value |
-|------|-------|
-| **Package Version** | 1.0 |
-| **Bicep Language Version** | 0.13+ |
-| **Created Date** | 2026-01-20 |
-| **Target OS** | Windows (legacy .NET Framework 4.8) |
-| **Azure CLI Version** | 2.40+ or PowerShell 7+ |
+| Item                       | Value                               |
+| -------------------------- | ----------------------------------- |
+| **Package Version**        | 1.0                                 |
+| **Bicep Language Version** | 0.13+                               |
+| **Created Date**           | 2026-01-20                          |
+| **Target OS**              | Windows (legacy .NET Framework 4.8) |
+| **Azure CLI Version**      | 2.40+ or PowerShell 7+              |
 
 ## ✅ Quality Assurance
 

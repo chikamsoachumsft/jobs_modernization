@@ -3,18 +3,21 @@
 ## Choose Your Deployment Option
 
 ### Option 1: Azure App Service (PaaS) - Recommended
+
 - **Pros**: Managed, automatic patching, scaling, least maintenance
 - **Cons**: Limited customization, higher cost for high compute
 - **Best for**: Quick deployment, minimal ops overhead
 - **See**: [DEPLOY_TO_AZURE_PAAS.md](./DEPLOY_TO_AZURE_PAAS.md)
 
 ### Option 2: Azure VM (IaaS)
+
 - **Pros**: Full control, can install anything, can co-locate SQL Server
 - **Cons**: You manage OS patching, more maintenance required
 - **Best for**: Complex requirements, hybrid scenarios
 - **See**: [DEPLOY_TO_AZURE_VM.md](./DEPLOY_TO_AZURE_VM.md)
 
 ### Option 3: On-Premises VM
+
 - **Pros**: Complete control, no cloud costs for compute
 - **Cons**: You manage everything, no cloud benefits
 - **Best for**: Keeping within corporate infrastructure
@@ -22,6 +25,7 @@
 ## Fastest Deployment Path (PaaS)
 
 ### 5 Minutes: Create Resources
+
 ```powershell
 # Login to Azure
 az login
@@ -53,6 +57,7 @@ az sql db create `
 ```
 
 ### 10 Minutes: Deploy Application
+
 ```powershell
 # In Visual Studio:
 # 1. Right-click project
@@ -67,6 +72,7 @@ dotnet publish -c Release -o publish
 ```
 
 ### 5 Minutes: Configure Database
+
 ```powershell
 # Update connection string in web.config
 # Restore database from backup
@@ -76,15 +82,17 @@ dotnet publish -c Release -o publish
 ## Key Configuration Steps
 
 ### 1. Update web.config Connection String
+
 ```xml
 <connectionStrings>
-  <add name="connectionstring" 
-       connectionString="Server=tcp:jobsite-sql.database.windows.net,1433;Initial Catalog=JobSiteDb;User ID=sqladmin;Password=YourPassword;Encrypt=True;TrustServerCertificate=False;" 
+  <add name="connectionstring"
+       connectionString="Server=tcp:jobsite-sql.database.windows.net,1433;Initial Catalog=JobSiteDb;User ID=sqladmin;Password=YourPassword;Encrypt=True;TrustServerCertificate=False;"
        providerName="System.Data.SqlClient" />
 </connectionStrings>
 ```
 
 ### 2. Restore Database
+
 ```bash
 # Export database from legacy server as BACPAC
 # Then import to Azure SQL:
@@ -98,6 +106,7 @@ az sql db import `
 ```
 
 ### 3. Test Application
+
 - Navigate to: `https://jobsite-app.azurewebsites.net`
 - Test login functionality
 - Check Application Insights logs
@@ -136,13 +145,13 @@ Testing Complete:
 
 ## Troubleshooting Quick Links
 
-| Issue | Solution |
-|-------|----------|
-| 500 Error | Check logs in App Service or Event Viewer |
-| Can't connect to database | Verify connection string, check firewall rules |
-| Login not working | Verify authentication provider is configured |
-| Slow performance | Scale up App Service SKU, check SQL performance |
-| Certificate error | Ensure SSL certificate is valid, HTTPS binding exists |
+| Issue                     | Solution                                              |
+| ------------------------- | ----------------------------------------------------- |
+| 500 Error                 | Check logs in App Service or Event Viewer             |
+| Can't connect to database | Verify connection string, check firewall rules        |
+| Login not working         | Verify authentication provider is configured          |
+| Slow performance          | Scale up App Service SKU, check SQL performance       |
+| Certificate error         | Ensure SSL certificate is valid, HTTPS binding exists |
 
 ## Support Resources
 
@@ -157,4 +166,3 @@ Testing Complete:
 3. **Scaling**: Test load and scale up if needed
 4. **Security**: Enable Azure AD, configure WAF
 5. **Migration**: Plan transition to modern architecture
-

@@ -1,9 +1,11 @@
 # Deploying Legacy ASP.NET to Azure VM
 
 ## Overview
+
 This guide covers deploying the legacy ASP.NET 2.0 Web Forms application to an Azure Virtual Machine with IIS.
 
 ## Architecture
+
 ```
 Internet
    ↓
@@ -17,6 +19,7 @@ Azure SQL Database (or on-VM SQL Server)
 ```
 
 ## Prerequisites
+
 - Azure subscription
 - RDP client (Remote Desktop)
 - Legacy application code
@@ -296,16 +299,16 @@ Copy-Item -Path "Z:\jobsite\*" -Destination "C:\inetpub\wwwroot\jobsite" -Recurs
 <configuration>
   <connectionStrings>
     <!-- For on-VM SQL Server -->
-    <add name="connectionstring" 
-         connectionString="Server=localhost;Database=JobSiteDb;User Id=sa;Password=YourPassword;" 
+    <add name="connectionstring"
+         connectionString="Server=localhost;Database=JobSiteDb;User Id=sa;Password=YourPassword;"
          providerName="System.Data.SqlClient" />
-    
+
     <!-- For Azure SQL Database -->
-    <add name="connectionstring" 
-         connectionString="Server=tcp:jobsite-sqlserver.database.windows.net,1433;Initial Catalog=JobSiteDb;Persist Security Info=False;User ID=sqladmin;Password=YourPassword;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;" 
+    <add name="connectionstring"
+         connectionString="Server=tcp:jobsite-sqlserver.database.windows.net,1433;Initial Catalog=JobSiteDb;Persist Security Info=False;User ID=sqladmin;Password=YourPassword;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
          providerName="System.Data.SqlClient" />
   </connectionStrings>
-  
+
   <system.web>
     <compilation debug="false" />
     <customErrors mode="RemoteOnly" />
@@ -400,6 +403,7 @@ az backup protection enable-for-vm `
 ## Troubleshooting
 
 ### Website Not Accessible
+
 ```powershell
 # Check IIS status
 iisreset /status
@@ -415,6 +419,7 @@ Invoke-WebRequest -Uri "http://localhost"
 ```
 
 ### SQL Connection Failed
+
 ```powershell
 # Check SQL Server status
 Get-Service -Name MSSQLSERVER
@@ -427,6 +432,7 @@ Select-String -Path "C:\inetpub\wwwroot\jobsite\web.config" -Pattern "connection
 ```
 
 ### High Memory Usage
+
 ```powershell
 # Restart app pool
 Restart-WebAppPool -Name "JobSitePool"
@@ -442,4 +448,3 @@ Get-Process | Sort-Object WorkingSet -Descending | Select-Object -First 10
 3. Configure load balancer for HA
 4. Set up disaster recovery
 5. Plan migration to modern architecture
-

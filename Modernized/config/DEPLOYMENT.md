@@ -1,6 +1,7 @@
 # Azure Deployment Scripts
 
 ## Prerequisites
+
 - Azure CLI installed
 - Azure subscription with appropriate permissions
 - Resource group already created
@@ -8,6 +9,7 @@
 ## Deployment Steps
 
 ### Development Environment
+
 ```bash
 az deployment group create \
   --name jobsite-deployment \
@@ -17,6 +19,7 @@ az deployment group create \
 ```
 
 ### Staging Environment
+
 ```bash
 az deployment group create \
   --name jobsite-deployment \
@@ -27,6 +30,7 @@ az deployment group create \
 ```
 
 ### Production Environment
+
 ```bash
 az deployment group create \
   --name jobsite-deployment \
@@ -37,6 +41,7 @@ az deployment group create \
 ```
 
 ## Validate Template
+
 ```bash
 az deployment group validate \
   --resource-group rg-jobsite-dev \
@@ -45,6 +50,7 @@ az deployment group validate \
 ```
 
 ## What Gets Created
+
 - App Service Plan
 - App Service (Web App)
 - SQL Server & Database

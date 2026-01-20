@@ -112,6 +112,7 @@ Modernized/
 ## Layer Responsibilities
 
 ### JobSite.Api (Presentation Layer)
+
 - HTTP request/response handling
 - Controllers with action methods
 - API routing and middleware
@@ -120,12 +121,14 @@ Modernized/
 - Authentication/authorization filters
 
 ### JobSite.Core (Domain Layer)
+
 - Domain entities (Company, JobPosting, Resume, etc.)
 - Data Transfer Objects (DTOs)
 - Enums and constants
 - **No business logic** - just data structures
 
 ### JobSite.Application (Business Logic Layer)
+
 - Service classes implementing interfaces
 - Business logic and workflows
 - Data validation using FluentValidation
@@ -133,6 +136,7 @@ Modernized/
 - Orchestration of complex operations
 
 ### JobSite.Infrastructure (Data Access Layer)
+
 - Entity Framework Core DbContext
 - Repository pattern implementations
 - Database migrations
@@ -141,14 +145,13 @@ Modernized/
 
 ## Naming Conventions
 
-| Item | Convention | Example |
-|------|-----------|---------|
-| Classes | PascalCase | `CompanyService` |
-| Interfaces | IPascalCase | `ICompanyService` |
-| Methods | PascalCase | `GetCompanyAsync()` |
-| Properties | PascalCase | `CompanyName` |
-| Private fields | _camelCase | `_logger` |
-| Constants | UPPER_CASE | `MAX_FILE_SIZE` |
-| DTOs | *Dto suffix | `CreateCompanyDto` |
-| Async methods | *Async suffix | `GetCompanyAsync()` |
-
+| Item           | Convention     | Example             |
+| -------------- | -------------- | ------------------- |
+| Classes        | PascalCase     | `CompanyService`    |
+| Interfaces     | IPascalCase    | `ICompanyService`   |
+| Methods        | PascalCase     | `GetCompanyAsync()` |
+| Properties     | PascalCase     | `CompanyName`       |
+| Private fields | \_camelCase    | `_logger`           |
+| Constants      | UPPER_CASE     | `MAX_FILE_SIZE`     |
+| DTOs           | \*Dto suffix   | `CreateCompanyDto`  |
+| Async methods  | \*Async suffix | `GetCompanyAsync()` |

@@ -276,4 +276,3 @@ Set-Alias -Name azs -Value "az sql"
 Set-Alias -Name azv -Value "az vm"
 Set-Alias -Name azk -Value "az keyvault"
 ```
-

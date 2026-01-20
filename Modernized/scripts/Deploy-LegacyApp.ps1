@@ -19,18 +19,18 @@
 #>
 
 param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [ValidateSet('dev', 'staging', 'prod')]
     [string]$Environment,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [ValidateSet('paas', 'vm')]
     [string]$DeploymentType,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]$ApplicationPath,
 
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]$DatabaseBackupPath,
 
     [string]$SubscriptionId = "",
@@ -44,9 +44,9 @@ $ErrorActionPreference = "Stop"
 # Colors for output
 $colors = @{
     Success = "Green"
-    Error = "Red"
+    Error   = "Red"
     Warning = "Yellow"
-    Info = "Cyan"
+    Info    = "Cyan"
 }
 
 function Write-Log {
@@ -107,12 +107,12 @@ function New-ResourceNaming {
     param([string]$Environment)
     
     return @{
-        ResourceGroup = "rg-jobsite-$Environment"
+        ResourceGroup  = "rg-jobsite-$Environment"
         AppServicePlan = "plan-jobsite-$Environment"
-        AppService = "jobsite-$Environment-app"
-        SqlServer = "jobsite-$Environment-sql"
-        SqlDatabase = "JobSiteDb"
-        KeyVault = "kv-jobsite-$Environment"
+        AppService     = "jobsite-$Environment-app"
+        SqlServer      = "jobsite-$Environment-sql"
+        SqlDatabase    = "JobSiteDb"
+        KeyVault       = "kv-jobsite-$Environment"
         StorageAccount = "sajobsite$Environment"
         VirtualMachine = "vm-jobsite-$Environment"
     }
@@ -211,9 +211,9 @@ function Deploy-PaaS {
     
     # Return connection info
     return @{
-        SqlPassword = $sqlPassword
+        SqlPassword      = $sqlPassword
         ConnectionString = $connectionString
-        AppServiceUrl = (az webapp show --name $Names.AppService --resource-group $ResourceGroupName --query defaultHostName -o tsv)
+        AppServiceUrl    = (az webapp show --name $Names.AppService --resource-group $ResourceGroupName --query defaultHostName -o tsv)
     }
 }
 
@@ -292,8 +292,8 @@ function Deploy-VM {
     $publicIp = az vm list-ip-addresses --resource-group $ResourceGroupName --name $Names.VirtualMachine --query [0].virtualMachines[0].ipAddresses[0].ipAddress -o tsv
     
     return @{
-        VmPassword = $vmPassword
-        PublicIp = $publicIp
+        VmPassword    = $vmPassword
+        PublicIp      = $publicIp
         RdpConnection = "mstsc /v:$publicIp"
     }
 }

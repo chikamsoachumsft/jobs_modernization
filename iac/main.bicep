@@ -135,7 +135,7 @@ resource sqlFirewallRuleLocal 'Microsoft.Sql/servers/firewallRules@2021-11-01' =
   name: 'AllowLocalDevelopment'
   properties: {
     startIpAddress: '0.0.0.0'
-    endIpAddress: '255.255.255.255'  // IMPORTANT: Change this to specific IP in production
+    endIpAddress: '255.255.255.255' // IMPORTANT: Change this to specific IP in production
   }
 }
 
@@ -160,9 +160,9 @@ resource sqlDatabaseBackup 'Microsoft.Sql/servers/databases/backupLongTermRetent
   parent: sqlDatabase
   name: 'default'
   properties: {
-    weeklyRetention: 'P4W'    // Keep weekly backups for 4 weeks
-    monthlyRetention: 'P12M'  // Keep monthly backups for 12 months
-    yearlyRetention: 'P0Y'    // Don't keep yearly
+    weeklyRetention: 'P4W' // Keep weekly backups for 4 weeks
+    monthlyRetention: 'P12M' // Keep monthly backups for 12 months
+    yearlyRetention: 'P0Y' // Don't keep yearly
     weekOfYear: 1
   }
 }
@@ -302,7 +302,7 @@ resource appServiceConfig 'Microsoft.Web/sites/config@2021-03-01' = {
       }
       {
         name: 'WEBSITE_RUN_FROM_PACKAGE'
-        value: '0'  // For legacy .NET Framework, run from App Service file system
+        value: '0' // For legacy .NET Framework, run from App Service file system
       }
       {
         name: 'WEBSITE_HTTPLOGGING_RETENTION_DAYS'

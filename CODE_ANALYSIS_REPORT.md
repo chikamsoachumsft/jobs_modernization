@@ -1,6 +1,7 @@
 # Code Analysis Report - Legacy ASP.NET Application
 
 ## Executive Summary
+
 The legacy ASP.NET 2.0 Web Forms application has **13 critical issues** that pose risks to functionality, security, and maintainability. Most are addressable but should be prioritized before deployment to production.
 
 ---
@@ -8,9 +9,11 @@ The legacy ASP.NET 2.0 Web Forms application has **13 critical issues** that pos
 ## 🔴 CRITICAL ISSUES
 
 ### 1. **Resource Leaks in Data Access Layer**
+
 **File**: [App_Code/DAL/DBAccess.cs](App_Code/DAL/DBAccess.cs)
 
-**Problem**: 
+**Problem**:
+
 - `SqlConnection` is never disposed
 - `SqlDataReader` is manually closed but not disposed
 - No using statements
@@ -18,6 +21,7 @@ The legacy ASP.NET 2.0 Web Forms application has **13 critical issues** that pos
 **Risk**: Memory leaks, connection pool exhaustion
 
 **Code**:
+
 ```csharp
 public IDataReader ExecuteReader()
 {
@@ -32,6 +36,7 @@ public IDataReader ExecuteReader()
 ```
 
 **Fix**:
+
 ```csharp
 public async Task<IDataReader> ExecuteReaderAsync()
 {
@@ -47,9 +52,11 @@ public async Task<IDataReader> ExecuteReaderAsync()
 ---
 
 ### 2. **Improper Exception Handling**
+
 **File**: [App_Code/DAL/DBAccess.cs](App_Code/DAL/DBAccess.cs)
 
-**Problem**: 
+**Problem**:
+
 ```csharp
 catch (Exception ex)
 {
@@ -64,12 +71,14 @@ catch  // ⚠️ Bare catch block - catches everything including system exceptio
 }
 ```
 
-**Risk**: 
+**Risk**:
+
 - Swallows exceptions silently (if handleErrors=true)
 - Can't distinguish between different exception types
 - No logging
 
 **Fix**:
+
 ```csharp
 catch (SqlException ex)
 {
@@ -86,10 +95,12 @@ catch (Exception ex)
 ---
 
 ### 3. **SQL Injection Vulnerability (Indirect)**
+
 **File**: [App_Code/DAL/DBAccess.cs](App_Code/DAL/DBAccess.cs), All BOL classes
 
 **Problem**:
 While stored procedures are used (reducing immediate SQL injection risk), the application:
+
 - Doesn't validate input before passing to stored procedures
 - Uses dynamic SQL in some methods
 - No input sanitization
@@ -97,12 +108,14 @@ While stored procedures are used (reducing immediate SQL injection risk), the ap
 **Risk**: Medium - Stored procedures provide some protection but aren't foolproof
 
 **Example**:
+
 ```csharp
 db.Parameters.Add(new SqlParameter("@sUserName", username));  // ⚠️ No validation
 db.ExecuteReader("JobsDb_Companies_SelectByUserName");
 ```
 
 **Fix**:
+
 ```csharp
 // Add validation BEFORE database calls
 if (string.IsNullOrWhiteSpace(username) || username.Length > 100)
@@ -114,9 +127,11 @@ db.Parameters.Add(new SqlParameter("@sUserName", username));
 ---
 
 ### 4. **Security Configuration Issues in web.config**
+
 **File**: [web.config](web.config)
 
 **Problems**:
+
 ```xml
 <!-- 1. Debug mode enabled in production -->
 <compilation debug="true">
@@ -131,6 +146,7 @@ db.Parameters.Add(new SqlParameter("@sUserName", username));
 **Risk**: Information disclosure, stack trace leakage, credentials in config
 
 **Fix**:
+
 ```xml
 <!-- Production -->
 <compilation debug="false" targetFramework="4.8">
@@ -147,21 +163,25 @@ db.Parameters.Add(new SqlParameter("@sUserName", username));
 ---
 
 ### 5. **Hardcoded Magic Strings & Configuration**
+
 **File**: Multiple pages (AddEditPosting.aspx.cs, companyprofile.aspx.cs, etc.)
 
 **Problem**:
+
 ```csharp
 // ⚠️ Magic strings scattered throughout
 Response.Redirect("~/" + ConfigurationManager.AppSettings["employerfolder"] + "/jobpostings.aspx");
 Response.Redirect("~/customerrorpages/profilenotfound.aspx");
 ```
 
-**Risk**: 
+**Risk**:
+
 - Typos cause runtime errors
 - Hard to maintain
 - No compile-time checking
 
 **Fix**:
+
 ```csharp
 // Create constants file
 public static class RouteConstants
@@ -178,9 +198,11 @@ Response.Redirect($"~/{RouteConstants.EmployerFolder}/{RouteConstants.JobPosting
 ---
 
 ### 6. **No Input Validation**
+
 **File**: All .aspx.cs files
 
 **Problem**:
+
 - No validation on `Request.QueryString["id"]`
 - No validation on form inputs before passing to data layer
 - Example from AddEditPosting.aspx.cs:
@@ -192,12 +214,14 @@ if (Request.QueryString["id"] == null)  // ⚠️ No type checking or validation
 }
 ```
 
-**Risk**: 
+**Risk**:
+
 - Invalid data in database
 - XSS attacks
 - Type conversion exceptions
 
 **Fix**:
+
 ```csharp
 if (!int.TryParse(Request.QueryString["id"], out var postingId) || postingId <= 0)
 {
@@ -208,9 +232,11 @@ if (!int.TryParse(Request.QueryString["id"], out var postingId) || postingId <= 
 ---
 
 ### 7. **Weak Authentication & Authorization**
+
 **File**: [login.aspx.cs](login.aspx.cs), All protected pages
 
 **Problem**:
+
 ```csharp
 // login.aspx.cs
 if (Membership.ValidateUser(Login1.UserName, Login1.Password))
@@ -227,12 +253,14 @@ if (!Roles.IsUserInRole(ConfigurationManager.AppSettings["employerrolename"]))
 ```
 
 **Risk**:
+
 - No protection against brute force attacks
 - No multi-factor authentication
 - No audit trail of who accessed what
 - Forms authentication cookie vulnerable if not over HTTPS
 
 **Fix**:
+
 ```csharp
 // Implement:
 // - Account lockout after N failed attempts
@@ -247,9 +275,11 @@ if (!Roles.IsUserInRole(ConfigurationManager.AppSettings["employerrolename"]))
 ---
 
 ### 8. **No Async/Await Pattern**
+
 **File**: All data access code
 
 **Problem**:
+
 - All database calls are synchronous
 - Blocks thread pool threads
 - Poor scalability
@@ -265,6 +295,7 @@ public IDataReader ExecuteReader()  // Synchronous blocking call
 **Risk**: Poor performance under load, thread starvation
 
 **Fix**: Migrate to async patterns
+
 ```csharp
 public async Task<IDataReader> ExecuteReaderAsync()
 {
@@ -277,7 +308,8 @@ public async Task<IDataReader> ExecuteReaderAsync()
 
 ### 9. **Database Design Issues**
 
-**Problem**: 
+**Problem**:
+
 - Duplicate connection strings in web.config (connectionstring + MyProviderConnectionString)
 - No indexes indicated in schema
 - Stored procedures not versioned
@@ -288,9 +320,11 @@ public async Task<IDataReader> ExecuteReaderAsync()
 ---
 
 ### 10. **Missing Null Checks & Type Safety**
+
 **File**: All BOL classes (Company.cs, JobPosting.cs, etc.)
 
 **Problem**:
+
 ```csharp
 public static Company GetCompany(int companyid)
 {
@@ -318,12 +352,14 @@ public static Company GetCompany(int companyid)
 }
 ```
 
-**Risk**: 
+**Risk**:
+
 - NullReferenceExceptions at runtime
 - GetOrdinal() called repeatedly (performance hit)
 - Silent failures (returns null instead of throwing)
 
 **Fix**:
+
 ```csharp
 public static Company GetCompany(int companyid)
 {
@@ -342,7 +378,7 @@ public static Company GetCompany(int companyid)
             };
         }
     }
-    
+
     throw new KeyNotFoundException($"Company with ID {companyid} not found");
 }
 ```
@@ -352,7 +388,9 @@ public static Company GetCompany(int companyid)
 ## 🟠 HIGH PRIORITY ISSUES
 
 ### 11. **No Logging**
+
 **Problem**: No structured logging anywhere in codebase
+
 ```csharp
 // No log statements except silent error swallowing
 catch (Exception ex)
@@ -365,6 +403,7 @@ catch (Exception ex)
 **Impact**: Impossible to debug production issues
 
 **Fix**:
+
 ```csharp
 // Implement logging
 private readonly ILogger<DataAccess> _logger;
@@ -387,9 +426,11 @@ public async Task<T> ExecuteAsync<T>(...)
 ---
 
 ### 12. **No Error Handling in Page Events**
+
 **File**: All .aspx.cs files
 
 **Problem**:
+
 ```csharp
 protected void Page_Load(object sender, EventArgs e)
 {
@@ -397,7 +438,7 @@ protected void Page_Load(object sender, EventArgs e)
     {
         Response.Redirect("~/customerrorpages/NotAuthorized.aspx");
     }
-    
+
     // ⚠️ No try-catch, what if GetCompany throws?
     if (Company.GetCompany(User.Identity.Name) == null)
     {
@@ -409,6 +450,7 @@ protected void Page_Load(object sender, EventArgs e)
 **Risk**: Unhandled exceptions cause 500 errors with stack trace exposure
 
 **Fix**:
+
 ```csharp
 protected void Page_Load(object sender, EventArgs e)
 {
@@ -432,9 +474,11 @@ protected void Page_Load(object sender, EventArgs e)
 ---
 
 ### 13. **No Unit Tests**
+
 **Problem**: Zero test coverage of business logic
 
-**Risk**: 
+**Risk**:
+
 - Regressions on changes
 - Can't safely refactor
 - Manual QA required for everything
@@ -454,20 +498,21 @@ protected void Page_Load(object sender, EventArgs e)
 
 ## 📊 Code Quality Metrics
 
-| Metric | Score | Target |
-|--------|-------|--------|
-| **Test Coverage** | 0% | 80%+ |
-| **Code Duplication** | High | <5% |
-| **Cyclomatic Complexity** | High | <10 per method |
-| **Security Issues** | 8+ | 0 |
-| **Resource Leaks** | Multiple | 0 |
-| **Exception Handling** | Poor | Best practices |
+| Metric                    | Score    | Target         |
+| ------------------------- | -------- | -------------- |
+| **Test Coverage**         | 0%       | 80%+           |
+| **Code Duplication**      | High     | <5%            |
+| **Cyclomatic Complexity** | High     | <10 per method |
+| **Security Issues**       | 8+       | 0              |
+| **Resource Leaks**        | Multiple | 0              |
+| **Exception Handling**    | Poor     | Best practices |
 
 ---
 
 ## 🔧 Remediation Roadmap
 
 ### Phase 1: Critical (Before Production) - 1-2 weeks
+
 - [ ] Fix resource leaks in DBAccess
 - [ ] Enable security in web.config
 - [ ] Add input validation
@@ -476,6 +521,7 @@ protected void Page_Load(object sender, EventArgs e)
 - [ ] Implement logging
 
 ### Phase 2: High Priority (2-4 weeks)
+
 - [ ] Migrate to async patterns
 - [ ] Add unit tests for data layer
 - [ ] Improve exception handling
@@ -483,12 +529,14 @@ protected void Page_Load(object sender, EventArgs e)
 - [ ] Add audit logging
 
 ### Phase 3: Medium Priority (4-8 weeks)
+
 - [ ] Refactor to remove code duplication
 - [ ] Move to modern authentication (ASP.NET Identity)
 - [ ] Implement CSRF protection
 - [ ] Add comprehensive logging
 
 ### Phase 4: Modernization (Long-term)
+
 - [ ] Migrate to ASP.NET Core
 - [ ] Move to Entity Framework Core
 - [ ] Implement API-first architecture
@@ -518,16 +566,15 @@ protected void Page_Load(object sender, EventArgs e)
 
 ## 📋 Issue Summary Table
 
-| Issue | Severity | Effort | Impact |
-|-------|----------|--------|--------|
-| Resource leaks | Critical | Medium | High |
-| Security config | Critical | Low | Critical |
-| Exception handling | Critical | Medium | High |
-| Input validation | Critical | Medium | High |
-| Logging | High | Medium | Medium |
-| Async/await | High | High | Medium |
-| Error handling on pages | High | Medium | High |
-| No tests | High | High | High |
-| Hardcoded values | Medium | Low | Low |
-| Type safety | Medium | Medium | Medium |
-
+| Issue                   | Severity | Effort | Impact   |
+| ----------------------- | -------- | ------ | -------- |
+| Resource leaks          | Critical | Medium | High     |
+| Security config         | Critical | Low    | Critical |
+| Exception handling      | Critical | Medium | High     |
+| Input validation        | Critical | Medium | High     |
+| Logging                 | High     | Medium | Medium   |
+| Async/await             | High     | High   | Medium   |
+| Error handling on pages | High     | Medium | High     |
+| No tests                | High     | High   | High     |
+| Hardcoded values        | Medium   | Low    | Low      |
+| Type safety             | Medium   | Medium | Medium   |

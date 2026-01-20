@@ -1,6 +1,7 @@
 # Contributing Guide
 
 ## Code of Conduct
+
 - Be respectful and inclusive
 - Provide constructive feedback
 - Focus on code quality and team success
@@ -14,17 +15,20 @@
 ## Development Workflow
 
 ### 1. Create Feature Branch
+
 ```bash
 git checkout -b feature/add-job-search
 ```
 
 ### 2. Commit Changes
+
 ```bash
 git add .
 git commit -m "feat: add advanced job search filters"
 ```
 
 ### Commit Message Format
+
 ```
 <type>(<scope>): <subject>
 
@@ -38,6 +42,7 @@ git commit -m "feat: add advanced job search filters"
 **Subject**: imperative, lowercase, no period
 
 **Example**:
+
 ```
 feat(api): add job posting search endpoint
 
@@ -49,12 +54,14 @@ Closes #123
 ```
 
 ### 3. Code Style
+
 - Use C# naming conventions
 - Run code formatter: `dotnet format`
 - Follow [Microsoft C# Coding Conventions](https://docs.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)
 - Keep methods small and focused
 
 ### 4. Testing
+
 ```bash
 # Write unit tests for new logic
 # Write integration tests for API endpoints
@@ -65,16 +72,17 @@ dotnet test
 **Test Naming Convention**: `MethodName_Condition_ExpectedResult`
 
 Example:
+
 ```csharp
 [Fact]
 public async Task GetCompanyById_WithValidId_ReturnsCompany()
 {
     // Arrange
     var companyId = 1;
-    
+
     // Act
     var result = await _service.GetCompanyByIdAsync(companyId);
-    
+
     // Assert
     Assert.NotNull(result);
     Assert.Equal(companyId, result.Id);
@@ -82,6 +90,7 @@ public async Task GetCompanyById_WithValidId_ReturnsCompany()
 ```
 
 ### 5. Documentation
+
 - Add XML comments to public methods
 - Update relevant .md files
 - Keep API documentation in sync
@@ -112,17 +121,22 @@ public async Task<Company?> GetCompanyByIdAsync(int id, CancellationToken cancel
 5. **Merge**: Use "Squash and merge" for cleaner history
 
 **PR Template**:
+
 ```markdown
 ## Description
+
 Brief description of changes
 
 ## Related Issue
+
 Closes #123
 
 ## Testing
+
 How to test this change
 
 ## Checklist
+
 - [ ] Tests added/updated
 - [ ] Documentation updated
 - [ ] Code formatted
@@ -132,12 +146,14 @@ How to test this change
 ### 7. Code Review Guidelines
 
 **As an Author**:
+
 - Keep PRs focused and reasonably sized (<400 lines)
 - Provide context for reviewers
 - Respond promptly to feedback
 - Request re-review after changes
 
 **As a Reviewer**:
+
 - Check for correctness, clarity, and consistency
 - Look for security issues
 - Verify tests cover the changes
@@ -243,4 +259,3 @@ dotnet ef migrations script --project src/JobSite.Infrastructure -o script.sql
 - Share knowledge
 - Help others succeed
 - Report security issues privately
-

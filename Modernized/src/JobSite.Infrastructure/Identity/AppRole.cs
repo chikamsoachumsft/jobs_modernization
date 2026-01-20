@@ -8,6 +8,6 @@ namespace JobSite.Infrastructure.Identity;
 public class AppRole : IdentityRole
 {
     public string Description { get; set; } = string.Empty;
-    
+
     public DateTime CreatedAt { get; set; }
 }

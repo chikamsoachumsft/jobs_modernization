@@ -1,15 +1,19 @@
 # API Documentation
 
 ## Overview
+
 The Job Site API provides RESTful endpoints for managing job postings, companies, job seekers, and resumes.
 
 ## Base URL
+
 ```
 https://api.jobsite.com/api
 ```
 
 ## Authentication
+
 All requests require a valid JWT token in the Authorization header:
+
 ```
 Authorization: Bearer <your_jwt_token>
 ```
@@ -19,6 +23,7 @@ Authorization: Bearer <your_jwt_token>
 ### Companies
 
 #### Create Company
+
 ```
 POST /api/companies
 Content-Type: application/json
@@ -47,6 +52,7 @@ Response (201 Created):
 ```
 
 #### Get Company
+
 ```
 GET /api/companies/{id}
 
@@ -59,6 +65,7 @@ Response (200 OK):
 ```
 
 #### Update Company
+
 ```
 PUT /api/companies/{id}
 Content-Type: application/json
@@ -72,6 +79,7 @@ Response (200 OK):
 ```
 
 #### Delete Company
+
 ```
 DELETE /api/companies/{id}
 
@@ -81,6 +89,7 @@ Response (204 No Content):
 ### Job Postings
 
 #### Create Job Posting
+
 ```
 POST /api/jobpostings
 Content-Type: application/json
@@ -112,6 +121,7 @@ Response (201 Created):
 ```
 
 #### List Job Postings
+
 ```
 GET /api/jobpostings?page=1&pageSize=10&searchTerm=engineer
 
@@ -125,6 +135,7 @@ Response (200 OK):
 ```
 
 #### Get Job Posting
+
 ```
 GET /api/jobpostings/{id}
 
@@ -139,6 +150,7 @@ Response (200 OK):
 ## Error Responses
 
 ### 400 Bad Request
+
 ```json
 {
   "type": "https://tools.ietf.org/html/rfc9110#section-15.5.1",
@@ -152,6 +164,7 @@ Response (200 OK):
 ```
 
 ### 401 Unauthorized
+
 ```json
 {
   "type": "https://tools.ietf.org/html/rfc9110#section-15.1.2",
@@ -162,6 +175,7 @@ Response (200 OK):
 ```
 
 ### 404 Not Found
+
 ```json
 {
   "type": "https://tools.ietf.org/html/rfc9110#section-15.5.5",
@@ -172,6 +186,7 @@ Response (200 OK):
 ```
 
 ### 500 Internal Server Error
+
 ```json
 {
   "type": "https://tools.ietf.org/html/rfc9110#section-15.6.1",
@@ -182,6 +197,7 @@ Response (200 OK):
 ```
 
 ## Rate Limiting
+
 - Rate limit: 100 requests per minute per API key
 - Headers returned with each request:
   - `X-RateLimit-Limit`: 100
@@ -189,13 +205,16 @@ Response (200 OK):
   - `X-RateLimit-Reset`: 1642684200
 
 ## Pagination
+
 All list endpoints support pagination:
+
 - `page` (default: 1)
 - `pageSize` (default: 10, max: 100)
 
 ## Swagger/OpenAPI
+
 Access the interactive API documentation at:
+
 ```
 https://api.jobsite.com/swagger
 ```
-

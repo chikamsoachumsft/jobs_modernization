@@ -26,6 +26,6 @@ ENV ASPNETCORE_URLS=http://+:80
 EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost/health || exit 1
+    CMD curl -f http://localhost/health || exit 1
 
 ENTRYPOINT ["dotnet", "JobSite.Api.dll"]

@@ -20,6 +20,7 @@ az login
 Edit the parameter file for your environment:
 
 **For Development:**
+
 ```powershell
 # Open in VS Code or notepad
 code main.dev.bicepparam
@@ -31,6 +32,7 @@ code main.dev.bicepparam
 ```
 
 **For Production:**
+
 ```powershell
 code main.prod.bicepparam
 
@@ -128,7 +130,7 @@ Copy your SQL connection string to web.config:
 ```xml
 <configuration>
   <connectionStrings>
-    <add name="connectionstring" 
+    <add name="connectionstring"
          connectionString="Server=tcp:jobsite-sql-dev-xxxxx.database.windows.net,1433;
                            Initial Catalog=jobsitedb;
                            Persist Security Info=False;
@@ -136,10 +138,10 @@ Copy your SQL connection string to web.config:
                            Password=YourPasswordHere;
                            Encrypt=True;
                            TrustServerCertificate=False;
-                           Connection Timeout=30;" 
+                           Connection Timeout=30;"
          providerName="System.Data.SqlClient" />
   </connectionStrings>
-  
+
   <appSettings>
     <!-- Your other settings -->
   </appSettings>

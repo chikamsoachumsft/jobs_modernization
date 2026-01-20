@@ -8,12 +8,12 @@ namespace JobSite.Infrastructure.Identity;
 public class AppUser : IdentityUser
 {
     public string FirstName { get; set; } = string.Empty;
-    
+
     public string LastName { get; set; } = string.Empty;
-    
+
     public string? ProfilePictureUrl { get; set; }
-    
+
     public DateTime CreatedAt { get; set; }
-    
+
     public DateTime? LastLogin { get; set; }
 }

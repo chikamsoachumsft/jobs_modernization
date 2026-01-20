@@ -22,16 +22,19 @@ iac/
 ### Deploy Development Environment
 
 **PowerShell:**
+
 ```powershell
 ./Deploy-Bicep.ps1 -Environment dev -ResourceGroupName jobsite-dev-rg
 ```
 
 **Bash:**
+
 ```bash
 ./deploy-bicep.sh dev jobsite-dev-rg
 ```
 
 **Azure CLI:**
+
 ```bash
 az deployment group create \
   --name jobsite-deploy-dev \
@@ -43,11 +46,13 @@ az deployment group create \
 ### Deploy Production Environment
 
 **PowerShell:**
+
 ```powershell
 ./Deploy-Bicep.ps1 -Environment prod -ResourceGroupName jobsite-prod-rg
 ```
 
 **Bash:**
+
 ```bash
 ./deploy-bicep.sh prod jobsite-prod-rg
 ```
@@ -55,18 +60,22 @@ az deployment group create \
 ## 🏗️ Resources Created
 
 ### Compute
+
 - **App Service** - Hosts your .NET application
 - **App Service Plan** - Compute resources with auto-scale capability
 
 ### Database
+
 - **SQL Server** - Database server with TLS 1.2+ enforcement
 - **SQL Database** - Application database with automated backups
 
 ### Security
+
 - **Key Vault** - Stores connection strings and secrets
 - **Managed Identity** - Secure credential access for App Service
 
 ### Monitoring
+
 - **Application Insights** - Application performance monitoring
 - **Log Analytics Workspace** - Centralized logging and diagnostics
 - **Storage Account** - Diagnostic logs and blobs
@@ -74,6 +83,7 @@ az deployment group create \
 ## 📊 Environment Defaults
 
 ### Development (B2 / S0)
+
 ```
 App Service:       B2 (2 cores, 3.5 GB)
 SQL Database:      Standard S0 (10 DTUs)
@@ -82,6 +92,7 @@ Purpose:           Development and testing
 ```
 
 ### Staging (S1 / S1)
+
 ```
 App Service:       S1 (1 core, 1.75 GB)
 SQL Database:      Standard S1 (20 DTUs)
@@ -90,6 +101,7 @@ Purpose:           Pre-production testing
 ```
 
 ### Production (P1V2 / P2)
+
 ```
 App Service:       P1V2 (2 cores, 3.5 GB, always-on)
 SQL Database:      Premium P2 (250 DTUs)
@@ -145,32 +157,32 @@ az webapp deployment source config-zip \
 
 ## 🔑 Key Parameters
 
-| Parameter | Purpose | Example |
-|-----------|---------|---------|
-| `environment` | Environment name | dev, staging, prod |
-| `applicationName` | Used in resource names | jobsite |
-| `location` | Azure region | eastus, westus2 |
-| `appServiceSku` | Compute size | B1, S1, P1V2 |
-| `sqlDatabaseEdition` | SQL edition | Standard, Premium |
-| `sqlServiceObjective` | SQL performance | S0, S1, P1, P2 |
-| `sqlAdminUsername` | Database admin | sqladmin |
-| `sqlAdminPassword` | Database password | **CHANGE THIS** |
-| `alertEmail` | Alert recipient | your-email@company.com |
+| Parameter             | Purpose                | Example                |
+| --------------------- | ---------------------- | ---------------------- |
+| `environment`         | Environment name       | dev, staging, prod     |
+| `applicationName`     | Used in resource names | jobsite                |
+| `location`            | Azure region           | eastus, westus2        |
+| `appServiceSku`       | Compute size           | B1, S1, P1V2           |
+| `sqlDatabaseEdition`  | SQL edition            | Standard, Premium      |
+| `sqlServiceObjective` | SQL performance        | S0, S1, P1, P2         |
+| `sqlAdminUsername`    | Database admin         | sqladmin               |
+| `sqlAdminPassword`    | Database password      | **CHANGE THIS**        |
+| `alertEmail`          | Alert recipient        | your-email@company.com |
 
 ## 📦 What Gets Deployed
 
-| Resource | Count | Details |
-|----------|-------|---------|
-| **App Services** | 1 | Hosts your application |
-| **SQL Servers** | 1 | Database server |
-| **SQL Databases** | 1 | jobsitedb database |
-| **Key Vaults** | 1 | Secure secrets storage |
-| **App Insights** | 1 | Monitoring and telemetry |
-| **Log Analytics Workspaces** | 1 | Centralized logging |
-| **Storage Accounts** | 1 | Diagnostics storage |
-| **Managed Identities** | 1 | Secure access credentials |
-| **Firewall Rules** | 2 | Azure Services + Local |
-| **Total Cost Resources** | 11 | See pricing below |
+| Resource                     | Count | Details                   |
+| ---------------------------- | ----- | ------------------------- |
+| **App Services**             | 1     | Hosts your application    |
+| **SQL Servers**              | 1     | Database server           |
+| **SQL Databases**            | 1     | jobsitedb database        |
+| **Key Vaults**               | 1     | Secure secrets storage    |
+| **App Insights**             | 1     | Monitoring and telemetry  |
+| **Log Analytics Workspaces** | 1     | Centralized logging       |
+| **Storage Accounts**         | 1     | Diagnostics storage       |
+| **Managed Identities**       | 1     | Secure access credentials |
+| **Firewall Rules**           | 2     | Azure Services + Local    |
+| **Total Cost Resources**     | 11    | See pricing below         |
 
 ## 💾 Security Built-In
 
@@ -181,7 +193,7 @@ az webapp deployment source config-zip \
 ✅ **Firewall Rules** - Database access restricted  
 ✅ **Encryption at Rest** - Storage and database encrypted  
 ✅ **Diagnostics Enabled** - Full audit trail  
-✅ **Backup Configured** - Daily automated backups  
+✅ **Backup Configured** - Daily automated backups
 
 ## 🚀 Deployment Flow
 
@@ -253,6 +265,7 @@ az webapp show --resource-group jobsite-dev-rg --name jobsite-app-dev-xxxxx
 ## 💰 Cost Control
 
 ### Estimate Costs
+
 ```bash
 # View resource pricing
 az cost management query --query-definition ...
@@ -262,6 +275,7 @@ az cost management query --query-definition ...
 ```
 
 ### Reduce Costs
+
 - Use **smaller SKUs** for dev/staging
 - Enable **auto-shutdown** for dev environments
 - Use **spot instances** for non-critical workloads
@@ -292,23 +306,23 @@ az cost management query --query-definition ...
 
 ## 🆘 Common Issues
 
-| Issue | Solution |
-|-------|----------|
-| Deployment timeout | Increase timeout or use `--no-wait` |
-| SQL connection fails | Check firewall rules and credentials |
-| App shows 500 error | Review App Insights and application logs |
-| High cost | Review SKU sizes and resource utilization |
+| Issue                   | Solution                                  |
+| ----------------------- | ----------------------------------------- |
+| Deployment timeout      | Increase timeout or use `--no-wait`       |
+| SQL connection fails    | Check firewall rules and credentials      |
+| App shows 500 error     | Review App Insights and application logs  |
+| High cost               | Review SKU sizes and resource utilization |
 | Key Vault access denied | Verify Managed Identity has access policy |
 
 ## 📖 Documentation Map
 
-| File | Purpose | Time |
-|------|---------|------|
-| **QUICK_START.md** | Get running fast | 5 min |
-| **README.md** | Complete reference | 30 min |
+| File                         | Purpose                 | Time   |
+| ---------------------------- | ----------------------- | ------ |
+| **QUICK_START.md**           | Get running fast        | 5 min  |
+| **README.md**                | Complete reference      | 30 min |
 | **DEPLOYMENT_VALIDATION.md** | Comprehensive checklist | 20 min |
-| **PACKAGE_SUMMARY.md** | Package overview | 10 min |
-| **QUICK_REFERENCE.md** | This file - commands | 2 min |
+| **PACKAGE_SUMMARY.md**       | Package overview        | 10 min |
+| **QUICK_REFERENCE.md**       | This file - commands    | 2 min  |
 
 ## 🎓 Learn More
 
@@ -320,17 +334,20 @@ az cost management query --query-definition ...
 ## 🚀 Get Started Now!
 
 ### Option 1: Super Quick (5 minutes)
+
 1. Edit `main.dev.bicepparam` (change SQL password)
 2. Run `./Deploy-Bicep.ps1 -Environment dev -ResourceGroupName jobsite-dev-rg`
 3. Done! ✅
 
 ### Option 2: With Validation (15 minutes)
+
 1. Read [QUICK_START.md](QUICK_START.md)
 2. Update parameters
 3. Run deployment script
 4. Verify resources in Azure Portal
 
 ### Option 3: Complete Approach (30 minutes)
+
 1. Read [README.md](README.md) completely
 2. Complete [DEPLOYMENT_VALIDATION.md](DEPLOYMENT_VALIDATION.md) checklist
 3. Deploy infrastructure

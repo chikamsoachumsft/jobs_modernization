@@ -1,9 +1,11 @@
 # Deploying Legacy ASP.NET to Azure App Service
 
 ## Overview
+
 This guide covers deploying the legacy ASP.NET 2.0 Web Forms application to Azure App Service (PaaS).
 
 ## Prerequisites
+
 - Azure subscription
 - Azure CLI installed
 - Visual Studio 2022 or Web Deploy installed
@@ -11,6 +13,7 @@ This guide covers deploying the legacy ASP.NET 2.0 Web Forms application to Azur
 - SQL Server database
 
 ## Architecture
+
 ```
 Internet
    ↓
@@ -100,10 +103,11 @@ az sql server firewall-rule create `
 ## Step 2: Update Connection String
 
 ### Update web.config
+
 ```xml
 <configuration>
   <connectionStrings>
-    <add name="connectionstring" 
+    <add name="connectionstring"
          connectionString="Server=tcp:jobsite-sqlserver.database.windows.net,1433;
                           Initial Catalog=JobSiteDb;
                           Persist Security Info=False;
@@ -112,9 +116,9 @@ az sql server firewall-rule create `
                           MultipleActiveResultSets=False;
                           Encrypt=True;
                           TrustServerCertificate=False;
-                          Connection Timeout=30;" 
+                          Connection Timeout=30;"
          providerName="System.Data.SqlClient" />
-    <add name="MyProviderConnectionString" 
+    <add name="MyProviderConnectionString"
          connectionString="Server=tcp:jobsite-sqlserver.database.windows.net,1433;
                           Initial Catalog=JobSiteDb;
                           Persist Security Info=False;
@@ -123,7 +127,7 @@ az sql server firewall-rule create `
                           MultipleActiveResultSets=False;
                           Encrypt=True;
                           TrustServerCertificate=False;
-                          Connection Timeout=30;" 
+                          Connection Timeout=30;"
          providerName="System.Data.SqlClient" />
   </connectionStrings>
 </configuration>
@@ -132,6 +136,7 @@ az sql server firewall-rule create `
 ## Step 3: Restore Database
 
 ### Option A: Using BACPAC
+
 ```bash
 # Export from on-premises
 # In SQL Server Management Studio:
@@ -155,6 +160,7 @@ az sql db import `
 ```
 
 ### Option B: Using SQL Scripts
+
 ```bash
 # Generate script from legacy database
 # In SQL Server Management Studio:
@@ -229,13 +235,14 @@ git push azure main
 
 1. Go to App Service → Configuration
 2. Add Application Settings:
+
    ```
    Key: WEBSITE_LOAD_MODULES
    Value: AspNetCoreModule,AspNetCoreModuleV2
-   
+
    Key: WEBSITE_NODE_DEFAULT_VERSION
    Value: 12.13.0
-   
+
    Key: APPINSIGHTS_INSTRUMENTATIONKEY
    Value: (from Application Insights resource)
    ```
@@ -284,6 +291,7 @@ az webapp log tail `
 ## Troubleshooting
 
 ### 500 Internal Server Error
+
 ```bash
 # Check logs
 az webapp log tail --name jobsite-legacy-app --resource-group rg-jobsite-legacy
@@ -293,6 +301,7 @@ az webapp log tail --name jobsite-legacy-app --resource-group rg-jobsite-legacy
 ```
 
 ### Connection String Issues
+
 ```bash
 # Verify database connectivity
 # In App Service: Console
@@ -303,6 +312,7 @@ sqlcmd -S jobsite-sqlserver.database.windows.net -U sqladmin -P "PASSWORD" -q "S
 ```
 
 ### Performance Issues
+
 ```bash
 # Scale up App Service
 az appservice plan update `
@@ -345,4 +355,3 @@ az webapp config appsettings set `
 3. Configure backup and recovery
 4. Plan migration to modern architecture
 5. Document runbooks and procedures
-
