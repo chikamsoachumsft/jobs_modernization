@@ -1,0 +1,139 @@
+# Build results
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+[Dd]ebugPublish/
+x86/
+x64/
+bld/
+
+# Visual Studio
+.vs/
+.vscode/
+*.sln.docstates
+*.user
+*.userosscache
+*.sln.user
+*.suo
+*.vcxproj.user
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# Rider & JetBrains
+.idea/
+*.sln.iml
+*.DotSettings.user
+.DS_Store
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+!packages/build/
+*.nuget.props
+*.nuget.targets
+
+# Database files
+App_Data/*.mdf
+App_Data/*.ldf
+App_Data/*.ndf
+*.mdf
+*.ldf
+*.ndf
+
+# SQL Server Database Project files
+*.sqlproj.user
+JobsDB.slnx
+Database/JobsDB/.vs/
+Database/JobsDB/obj/
+
+# Publish output
+PublishProfiles/
+[Pp]ublish/
+
+# Web application build results
+_PublishedWebsites/
+*.PublishSettings
+*.azurePubxml
+*.pubxml
+*.publishproj
+
+# Local user-specific files
+launchSettings.json
+appsettings.local.json
+appsettings.Development.json.local
+
+# Logs
+logs/
+*.log
+*.logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+*.tmp
+*.temp
+~*
+*.backup
+*.bak
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.lnk
+
+# IDE backup files
+*.swp
+*.swo
+*~
+.#*
+
+# Node modules (if used)
+node_modules/
+dist/
+npm-shrinkwrap.json
+yarn.lock
+
+# Docker
+.dockerignore
+
+# Import Schema Logs
+Import\ Schema\ Logs/
+**/Import\ Schema\ Logs/
+
+# Unit test / coverage
+TestResults/
+*.trx
+coverage/
+.coverage
+
+# Build artifacts
+artifacts/
+publish/
+
+# Tool artifacts
+.editorconfig.local
+
+# Resharper files
+.resharper
+._R#
+*.codeanalysiscache
+
+# Azure local emulator
+AzureStorageEmulator/
+
+# TypeScript
+*.ts.map
+
+# GraphQL
+*.graphql.ts
