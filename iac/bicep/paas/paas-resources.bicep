@@ -20,9 +20,9 @@ param containerAppSubnetId string
 param tags object
 
 // Variables
-var uniqueSuffix = uniqueString(resourceGroup().id)
+var uniqueSuffix = uniqueString('${resourceGroup().id}-${location}')
 var appServiceName = '${applicationName}-app-${environment}-${uniqueSuffix}'
-var appServicePlanName = '${applicationName}-asp-${environment}'
+var appServicePlanName = '${applicationName}-asp-${environment}-${uniqueSuffix}'
 var sqlServerName = '${applicationName}-sql-${environment}-${uniqueSuffix}'
 var sqlDatabaseName = '${applicationName}db'
 var appInsightsName = '${applicationName}-ai-${environment}'

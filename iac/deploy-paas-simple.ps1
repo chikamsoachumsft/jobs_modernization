@@ -3,6 +3,7 @@
 
 $environment = "dev"
 $location = "eastus"
+$resourceGroupName = "jobsite-paas-$environment-$location-rg"
 
 # Get core outputs
 Write-Host "Getting core infrastructure outputs..." -ForegroundColor Yellow
@@ -10,6 +11,7 @@ $coreOutputs = az deployment sub show --name "jobsite-core-dev" --query "propert
 
 $peSubnetId = $coreOutputs.peSubnetId.value
 $logAnalyticsWorkspaceId = $coreOutputs.logAnalyticsWorkspaceId.value
+$logAnalyticsWorkspaceName = $coreOutputs.logAnalyticsWorkspaceName.value
 $keyVaultName = $coreOutputs.keyVaultName.value
 $vnetName = $coreOutputs.vnetName.value
 $coreRgName = $coreOutputs.resourceGroupName.value
@@ -46,8 +48,11 @@ az deployment sub create `
     --template-file "c:\git\jobs_modernization\iac\bicep\paas\main.bicep" `
     --parameters environment=$environment `
     --parameters location=$location `
+    --parameters resourceGroupName=$resourceGroupName `
     --parameters peSubnetId=$peSubnetId `
     --parameters logAnalyticsWorkspaceId=$logAnalyticsWorkspaceId `
+    --parameters logAnalyticsWorkspaceName=$logAnalyticsWorkspaceName `
+    --parameters coreResourceGroupName=$coreRgName `
     --parameters containerAppSubnetId=$containerAppSubnetId `
     --parameters sqlAadAdminObjectId=$sqlAadAdminObjectId `
     --parameters sqlAadAdminName=$sqlAadAdminName
