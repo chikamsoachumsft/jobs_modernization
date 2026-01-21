@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "10989919690752181222"
+      "templateHash": "13440197041717130689"
     }
   },
   "parameters": {
@@ -51,6 +51,18 @@
       "type": "string",
       "metadata": {
         "description": "Log Analytics Workspace ID (from core deployment)"
+      }
+    },
+    "appGatewayCertData": {
+      "type": "securestring",
+      "metadata": {
+        "description": "App Gateway certificate data (base64-encoded PFX) - passed securely from bootstrap"
+      }
+    },
+    "appGatewayCertPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "App Gateway certificate password - passed securely from bootstrap"
       }
     },
     "vmssInstanceCount": {
@@ -574,8 +586,8 @@
           {
             "name": "appGatewaySslCert",
             "properties": {
-              "data": "",
-              "password": ""
+              "data": "[parameters('appGatewayCertData')]",
+              "password": "[parameters('appGatewayCertPassword')]"
             }
           }
         ],

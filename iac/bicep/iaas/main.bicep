@@ -26,14 +26,13 @@ param dataSubnetId string
 @description('Log Analytics Workspace ID (from core deployment)')
 param logAnalyticsWorkspaceId string
 
-@description('Key Vault resource ID containing App Gateway certificate secrets')
-param keyVaultId string
+@description('App Gateway certificate data (base64-encoded PFX) - passed securely from bootstrap')
+@secure()
+param appGatewayCertData string
 
-@description('Key Vault secret name for the App Gateway PFX (base64)')
-param appGatewayCertSecretName string = 'appgw-pfx-base64'
-
-@description('Key Vault secret name for the App Gateway PFX password')
-param appGatewayCertPasswordSecretName string = 'appgw-pfx-password'
+@description('App Gateway certificate password - passed securely from bootstrap')
+@secure()
+param appGatewayCertPassword string
 
 @description('VMSS instance count')
 param vmssInstanceCount int = 1
@@ -95,11 +94,6 @@ var appGatewayName = '${resourcePrefix}-appgw-${uniqueSuffix}'
 var appGatewayPublicIpName = '${resourcePrefix}-appgw-pip-${uniqueSuffix}'
 var appGatewaySubnetName = 'snet-appgw'
 var appGatewaySubnetPrefix = '10.50.224.0/27'
-
-// Key Vault reference (for App Gateway cert)
-resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
-  id: keyVaultId
-}
 
 // ============================================================================
 // App Gateway Subnet (needs to be created separately from core)
@@ -588,8 +582,8 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-11-01' = {
       {
         name: 'appGatewaySslCert'
         properties: {
-          data: keyVault.getSecret(appGatewayCertSecretName).value
-          password: keyVault.getSecret(appGatewayCertPasswordSecretName).value
+          data: appGatewayCertData
+          password: appGatewayCertPassword
         }
       }
     ]

@@ -251,6 +251,29 @@ Write-Host "✅ Bicep template validated" -ForegroundColor Green
 Write-Host ""
 
 # ============================================================================
+# Retrieve Certificates from Key Vault for IAAS Deployment
+# ============================================================================
+
+$appGatewayCertData = $null
+$appGatewayCertPassword = $null
+
+if ($KeyVaultName) {
+    Write-Host "🔐 Retrieving App Gateway certificates from Key Vault..." -ForegroundColor Yellow
+    
+    $appGatewayCertData = az keyvault secret show --vault-name $KeyVaultName --name 'appgw-pfx-base64' --query value -o tsv 2>$null
+    $appGatewayCertPassword = az keyvault secret show --vault-name $KeyVaultName --name 'appgw-pfx-password' --query value -o tsv 2>$null
+    
+    if ($appGatewayCertData -and $appGatewayCertPassword) {
+        Write-Host "✅ App Gateway certificates retrieved from Key Vault" -ForegroundColor Green
+    }
+    else {
+        Write-Host "⚠️  Could not retrieve certificates from Key Vault. IAAS deployment may fail." -ForegroundColor Yellow
+    }
+}
+
+Write-Host ""
+
+# ============================================================================
 # Deployment
 # ============================================================================
 
@@ -278,6 +301,11 @@ if ($WhatIf) {
 
 if ($vpnRootCertBase64) {
     $deployCmd += @('vpnRootCertificate=' + $vpnRootCertBase64)
+}
+
+if ($appGatewayCertData -and $appGatewayCertPassword) {
+    $deployCmd += @('appGatewayCertData=' + $appGatewayCertData)
+    $deployCmd += @('appGatewayCertPassword=' + $appGatewayCertPassword)
 }
 
 Write-Host ""
