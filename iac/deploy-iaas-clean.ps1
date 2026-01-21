@@ -54,7 +54,7 @@ $deploymentParams = @{
     'parameters' = @{
         'environment' = @{ 'value' = 'dev' }
         'applicationName' = @{ 'value' = 'jobsite' }
-        'location' = @{ 'value' = 'eastus' }
+        'location' = @{ 'value' = 'swedencentral' }
         'frontendSubnetId' = @{ 'value' = $frontendSubnetId }
         'dataSubnetId' = @{ 'value' = $dataSubnetId }
         'adminUsername' = @{ 'value' = 'azureadmin' }
@@ -87,7 +87,7 @@ Write-Host ""
 
 az deployment sub create `
     --name "jobsite-iaas-dev" `
-    --location "eastus" `
+    --location "swedencentral" `
     --template-file $templateFile `
     --parameters "@$paramsFile" `
     --no-wait

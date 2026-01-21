@@ -8,7 +8,7 @@ targetScope = 'subscription'
 
 param environment string = 'dev'
 param applicationName string = 'jobsite'
-param location string = 'westus'
+param location string = 'swedencentral'
 param vpnRootCertificate string = ''
 param vpnClientAddressPool string = '172.16.0.0/24'
 param tags object = {

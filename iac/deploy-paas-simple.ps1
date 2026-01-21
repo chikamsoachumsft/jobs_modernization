@@ -2,7 +2,7 @@
 # Run this after core infrastructure is deployed
 
 $environment = "dev"
-$location = "eastus"
+$location = "swedencentral"
 $resourceGroupName = "jobsite-paas-$environment-$location-rg"
 
 # Get core outputs

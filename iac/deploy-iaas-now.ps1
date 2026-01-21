@@ -3,7 +3,7 @@
 
 $ErrorActionPreference = 'Stop'
 $environment = "dev"
-$location = "eastus"
+$location = "swedencentral"
 
 Write-Host "Getting core infrastructure outputs..." -ForegroundColor Yellow
 $coreOutputs = az deployment sub show --name "jobsite-core-dev" --query "properties.outputs" -o json | ConvertFrom-Json

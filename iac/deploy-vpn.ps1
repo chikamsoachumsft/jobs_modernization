@@ -10,7 +10,7 @@ Write-Host ""
 
 $environment = "dev"
 $applicationName = "jobsite"
-$location = "westus"
+$location = "swedencentral"
 $vpnClientAddressPool = "172.16.0.0/24"
 
 # Optional: VPN Root Certificate (Base64 encoded certificate data without headers)

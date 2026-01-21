@@ -7,7 +7,7 @@ targetScope = 'subscription'
 
 param environment string = 'dev'
 param applicationName string = 'jobsite'
-param location string = 'westus'
+param location string = 'swedencentral'
 param frontendSubnetId string
 param dataSubnetId string
 param adminUsername string = 'azureadmin'

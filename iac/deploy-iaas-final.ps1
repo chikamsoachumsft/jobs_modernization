@@ -46,10 +46,10 @@ Write-Host ""
 
 az deployment sub create `
     --name "jobsite-iaas-dev" `
-    --location eastus `
+    --location swedencentral `
     --template-file "c:\git\jobs_modernization\iac\bicep\iaas\main.bicep" `
     --parameters environment=dev `
-    --parameters location=eastus `
+    --parameters location=swedencentral `
     --parameters "frontendSubnetId=$frontendSubnetId" `
     --parameters "dataSubnetId=$dataSubnetId" `
     --parameters "adminPassword=$vmPassword" `

@@ -7,7 +7,7 @@ targetScope = 'subscription'
 
 param environment string = 'dev'
 param applicationName string = 'jobsite'
-param location string = 'westus'
+param location string = 'swedencentral'
 param appServiceSku string = 'S1'
 param sqlDatabaseEdition string = 'Standard'
 param sqlServiceObjective string = 'S1'

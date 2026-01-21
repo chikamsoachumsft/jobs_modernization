@@ -2,7 +2,7 @@
 # Run this after core infrastructure is deployed
 
 $environment = "dev"
-$location = "eastus"
+$location = "swedencentral"
 
 # Get core outputs
 Write-Host "Getting core infrastructure outputs..." -ForegroundColor Yellow

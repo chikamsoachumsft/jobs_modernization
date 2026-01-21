@@ -134,7 +134,7 @@ Write-Host ""
 
 $deployCmd = "az deployment sub create " + `
     "--name jobsite-iaas-dev " + `
-    "--location eastus " + `
+    "--location swedencentral " + `
     "--template-file ""c:\git\jobs_modernization\iac\bicep\iaas\main.bicep"" " + `
     "--parameters ""@$paramsFile"""
 
