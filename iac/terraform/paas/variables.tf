@@ -14,24 +14,6 @@ variable "app_service_sku" {
   type = string
 }
 
-variable "sql_database_edition" {
-  type = string
-}
-
-variable "sql_service_objective" {
-  type = string
-}
-
-variable "sql_admin_username" {
-  type      = string
-  sensitive = true
-}
-
-variable "sql_admin_password" {
-  type      = string
-  sensitive = true
-}
-
 variable "sql_aad_admin_object_id" {
   type = string
 }
@@ -54,6 +36,23 @@ variable "log_analytics_workspace_id" {
 
 variable "core_resource_group_name" {
   type = string
+}
+
+variable "sql_database_sku" {
+  type    = string
+  default = "S0"
+}
+
+variable "app_insights_instrumentation_key" {
+  type      = string
+  sensitive = true
+  default   = ""
+}
+
+variable "app_insights_connection_string" {
+  type      = string
+  sensitive = true
+  default   = ""
 }
 
 variable "tags" {

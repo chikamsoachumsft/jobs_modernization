@@ -53,6 +53,16 @@ variable "app_insights_connection_string" {
   default   = ""
 }
 
+variable "wfe_admin_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "sql_admin_password" {
+  type      = string
+  sensitive = true
+}
+
 variable "tags" {
   type = map(string)
 }

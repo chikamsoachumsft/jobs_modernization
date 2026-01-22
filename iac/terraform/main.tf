@@ -48,11 +48,13 @@ module "iaas" {
   data_subnet_id     = module.core.data_subnet_id
 
   # VM Configuration
-  admin_username  = var.wfe_admin_username
-  admin_password  = var.wfe_admin_password
-  vm_size         = var.vm_size
-  sql_vm_size     = var.sql_vm_size
-  allowed_rdp_ips = var.allowed_rdp_ips
+  admin_username     = var.wfe_admin_username
+  admin_password     = var.wfe_admin_password
+  wfe_admin_password = var.wfe_admin_password
+  sql_admin_password = var.sql_admin_password
+  vm_size            = var.vm_size
+  sql_vm_size        = var.sql_vm_size
+  allowed_rdp_ips    = var.allowed_rdp_ips
 
   # Monitoring
   app_insights_instrumentation_key = module.core.app_insights_instrumentation_key
@@ -80,10 +82,7 @@ module "paas" {
   app_service_sku = var.app_service_sku
 
   # Azure SQL Configuration
-  sql_database_edition    = var.sql_database_edition
-  sql_service_objective   = var.sql_service_objective
-  sql_admin_username      = var.sql_admin_username
-  sql_admin_password      = var.sql_admin_password
+  sql_database_sku        = var.sql_database_sku
   sql_aad_admin_object_id = var.sql_aad_admin_object_id
   sql_aad_admin_name      = var.sql_aad_admin_name
 
@@ -92,7 +91,9 @@ module "paas" {
   container_apps_subnet_id = module.core.container_apps_subnet_id
 
   # Monitoring
-  log_analytics_workspace_id = module.core.log_analytics_workspace_id
+  log_analytics_workspace_id       = module.core.log_analytics_workspace_id
+  app_insights_instrumentation_key = module.core.app_insights_instrumentation_key
+  app_insights_connection_string   = module.core.app_insights_connection_string
 
   # Core resource group for dependencies
   core_resource_group_name = module.core.resource_group_name
@@ -122,9 +123,9 @@ module "agents" {
   vmss_instance_count = var.vmss_instance_count
 
   # Azure DevOps / GitHub Configuration
-  azuredevops_org_url    = var.azuredevops_org_url
-  azuredevops_pat        = var.azuredevops_pat
-  azuredevops_agent_pool = var.azuredevops_agent_pool
+  azure_devops_org_url    = var.azure_devops_org_url
+  azure_devops_pat        = var.azure_devops_pat
+  azure_devops_agent_pool = var.azure_devops_agent_pool
 
   # Network dependencies from core
   github_runners_subnet_id = module.core.github_runners_subnet_id

@@ -147,15 +147,9 @@ variable "app_service_sku" {
 }
 
 variable "sql_database_edition" {
-  description = "Azure SQL Database edition"
+  description = "Azure SQL Database SKU"
   type        = string
-  default     = "Standard"
-}
-
-variable "sql_service_objective" {
-  description = "Azure SQL Database service objective"
-  type        = string
-  default     = "S1"
+  default     = "S0"
 }
 
 variable "sql_aad_admin_object_id" {
@@ -191,21 +185,27 @@ variable "vmss_instance_count" {
   }
 }
 
-variable "azuredevops_org_url" {
+variable "sql_database_sku" {
+  description = "Azure SQL Database SKU"
+  type        = string
+  default     = "S0"
+}
+
+variable "azure_devops_org_url" {
   description = "Azure DevOps organization URL"
   type        = string
   default     = ""
   sensitive   = true
 }
 
-variable "azuredevops_pat" {
+variable "azure_devops_pat" {
   description = "Azure DevOps Personal Access Token"
   type        = string
   default     = ""
   sensitive   = true
 }
 
-variable "azuredevops_agent_pool" {
+variable "azure_devops_agent_pool" {
   description = "Azure DevOps agent pool name"
   type        = string
   default     = "Default"

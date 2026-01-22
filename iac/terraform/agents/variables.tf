@@ -28,19 +28,19 @@ variable "vmss_instance_count" {
   type = number
 }
 
-variable "azuredevops_org_url" {
+variable "azure_devops_org_url" {
   type      = string
   sensitive = true
   default   = ""
 }
 
-variable "azuredevops_pat" {
+variable "azure_devops_pat" {
   type      = string
   sensitive = true
   default   = ""
 }
 
-variable "azuredevops_agent_pool" {
+variable "azure_devops_agent_pool" {
   type    = string
   default = "Default"
 }
