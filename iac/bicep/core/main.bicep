@@ -49,6 +49,7 @@ output vnetId string = coreResources.outputs.vnetId
 output vnetName string = coreResources.outputs.vnetName
 output frontendSubnetId string = coreResources.outputs.frontendSubnetId
 output dataSubnetId string = coreResources.outputs.dataSubnetId
+output githubRunnersSubnetId string = coreResources.outputs.githubRunnersSubnetId
 output peSubnetId string = coreResources.outputs.peSubnetId
 output keyVaultId string = coreResources.outputs.keyVaultId
 output keyVaultName string = coreResources.outputs.keyVaultName
