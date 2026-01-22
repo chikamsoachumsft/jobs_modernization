@@ -172,25 +172,32 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
   }
 }
 
-// Container App Environment
-resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
+// Container App Environment - NOTE: Already created in Core layer
+// This resource is disabled to avoid subnet conflict with Core CAE
+// resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
+//   name: containerAppEnvName
+//   location: location
+//   tags: tags
+//   properties: {
+//     appLogsConfiguration: {
+//       destination: 'log-analytics'
+//       logAnalyticsConfiguration: {
+//         customerId: logAnalytics.properties.customerId
+//         sharedKey: logAnalytics.listKeys().primarySharedKey
+//       }
+//     }
+//     vnetConfiguration: {
+//       infrastructureSubnetId: containerAppSubnetId
+//       internal: false
+//     }
+//     zoneRedundant: false
+//   }
+// }
+
+// Reference existing Container App Environment from Core layer
+resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
   name: containerAppEnvName
-  location: location
-  tags: tags
-  properties: {
-    appLogsConfiguration: {
-      destination: 'log-analytics'
-      logAnalyticsConfiguration: {
-        customerId: logAnalytics.properties.customerId
-        sharedKey: logAnalytics.listKeys().primarySharedKey
-      }
-    }
-    vnetConfiguration: {
-      infrastructureSubnetId: containerAppSubnetId
-      internal: false
-    }
-    zoneRedundant: false
-  }
+  scope: resourceGroup(coreResourceGroupName)
 }
 
 // Grant App Service Managed Identity pull access to ACR
