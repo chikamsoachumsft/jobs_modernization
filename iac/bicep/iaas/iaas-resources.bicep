@@ -9,17 +9,16 @@ param applicationName string
 param location string
 param frontendSubnetId string
 param dataSubnetId string
-param githubRunnersSubnetId string
 param adminUsername string
 param vmSize string
-param vmssInstanceCount int
 param sqlVmSize string
+param allowedRdpIps array = []
 @secure()
 param adminPassword string
 @secure()
-param appGatewayCertData string
+param appGatewayCertData string = ''
 @secure()
-param appGatewayCertPassword string
+param appGatewayCertPassword string = ''
 param tags object
 
 // Variables
@@ -30,6 +29,101 @@ var wfeVmName = '${resourcePrefix}-wfe-${uniqueSuffix}'
 var sqlVmName = '${resourcePrefix}-sqlvm-${uniqueSuffix}'
 var appGatewayName = '${resourcePrefix}-appgw-${uniqueSuffix}'
 var publicIpAppGwName = '${resourcePrefix}-pip-appgw-${uniqueSuffix}'
+var nsgFrontendName = '${resourcePrefix}-nsg-frontend'
+var nsgDataName = '${resourcePrefix}-nsg-data'
+
+// NSG for Frontend Subnet (WFE, App Gateway)
+resource nsgFrontend 'Microsoft.Network/networkSecurityGroups@2023-11-01' = {
+  name: nsgFrontendName
+  location: location
+  tags: tags
+  properties: {
+    securityRules: [
+      // Allow HTTP from internet
+      {
+        name: 'AllowHTTP'
+        properties: {
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '80'
+          sourceAddressPrefix: '*'
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 100
+          direction: 'Inbound'
+        }
+      }
+      // Allow HTTPS from internet
+      {
+        name: 'AllowHTTPS'
+        properties: {
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: '*'
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 110
+          direction: 'Inbound'
+        }
+      }
+      // Allow RDP for admin access (from allowed IPs)
+      {
+        name: 'AllowRDPFromAllowedIps'
+        properties: {
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '3389'
+          sourceAddressPrefix: allowedRdpIps[0]
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 120
+          direction: 'Inbound'
+        }
+      }
+      // Deny all other inbound by default (implicit)
+    ]
+  }
+}
+
+// NSG for Data Subnet (SQL VM)
+resource nsgData 'Microsoft.Network/networkSecurityGroups@2023-11-01' = {
+  name: nsgDataName
+  location: location
+  tags: tags
+  properties: {
+    securityRules: [
+      // Allow SQL from frontend subnet (WFE)
+      {
+        name: 'AllowSQLFromFrontend'
+        properties: {
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '1433'
+          sourceAddressPrefix: '10.50.0.0/24'
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 100
+          direction: 'Inbound'
+        }
+      }
+      // Allow RDP for admin access (from allowed IPs)
+      {
+        name: 'AllowRDPFromAllowedIps'
+        properties: {
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '3389'
+          sourceAddressPrefix: allowedRdpIps[0]
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 110
+          direction: 'Inbound'
+        }
+      }
+    ]
+  }
+}
 
 // Public IP for Application Gateway
 resource publicIpAppGw 'Microsoft.Network/publicIPAddresses@2023-11-01' = {
@@ -50,6 +144,9 @@ resource wfeNic 'Microsoft.Network/networkInterfaces@2023-11-01' = {
   location: location
   tags: tags
   properties: {
+    networkSecurityGroup: {
+      id: nsgFrontend.id
+    }
     ipConfigurations: [
       {
         name: 'ipconfig1'
@@ -124,6 +221,9 @@ resource sqlVmNic 'Microsoft.Network/networkInterfaces@2023-11-01' = {
   location: location
   tags: tags
   properties: {
+    networkSecurityGroup: {
+      id: nsgData.id
+    }
     ipConfigurations: [
       {
         name: 'ipconfig1'
@@ -275,15 +375,17 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-11-01' = {
         }
       }
     ]
-    sslCertificates: [
-      {
-        name: 'appGatewaySslCert'
-        properties: {
-          data: appGatewayCertData
-          password: appGatewayCertPassword
-        }
-      }
-    ]
+    sslCertificates: appGatewayCertData != ''
+      ? [
+          {
+            name: 'appGatewaySslCert'
+            properties: {
+              data: appGatewayCertData
+              password: appGatewayCertPassword
+            }
+          }
+        ]
+      : []
     backendAddressPools: [
       {
         name: 'wfe-backend-pool'
@@ -306,95 +408,117 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-11-01' = {
         }
       }
     ]
-    httpListeners: [
-      {
-        name: 'appGatewayHttpsListener'
-        properties: {
-          frontendIPConfiguration: {
-            id: resourceId(
-              'Microsoft.Network/applicationGateways/frontendIPConfigurations',
-              appGatewayName,
-              'appGatewayFrontendIP'
-            )
-          }
-          frontendPort: {
-            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', appGatewayName, 'port_443')
-          }
-          protocol: 'Https'
-          sslCertificate: {
-            id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', appGatewayName, 'appGatewaySslCert')
-          }
-        }
-      }
-      {
-        name: 'appGatewayHttpListener'
-        properties: {
-          frontendIPConfiguration: {
-            id: resourceId(
-              'Microsoft.Network/applicationGateways/frontendIPConfigurations',
-              appGatewayName,
-              'appGatewayFrontendIP'
-            )
-          }
-          frontendPort: {
-            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', appGatewayName, 'port_80')
-          }
-          protocol: 'Http'
-        }
-      }
-    ]
-    requestRoutingRules: [
-      {
-        name: 'httpsRoutingRule'
-        properties: {
-          ruleType: 'Basic'
-          priority: 100
-          httpListener: {
-            id: resourceId(
-              'Microsoft.Network/applicationGateways/httpListeners',
-              appGatewayName,
-              'appGatewayHttpsListener'
-            )
-          }
-          backendAddressPool: {
-            id: resourceId(
-              'Microsoft.Network/applicationGateways/backendAddressPools',
-              appGatewayName,
-              'wfe-backend-pool'
-            )
-          }
-          backendHttpSettings: {
-            id: resourceId(
-              'Microsoft.Network/applicationGateways/backendHttpSettingsCollection',
-              appGatewayName,
-              'appGatewayBackendHttpSettings'
-            )
+    httpListeners: concat(
+      appGatewayCertData != '' ? [
+        {
+          name: 'appGatewayHttpsListener'
+          properties: {
+            frontendIPConfiguration: {
+              id: resourceId(
+                'Microsoft.Network/applicationGateways/frontendIPConfigurations',
+                appGatewayName,
+                'appGatewayFrontendIP'
+              )
+            }
+            frontendPort: {
+              id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', appGatewayName, 'port_443')
+            }
+            protocol: 'Https'
+            sslCertificate: {
+              id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', appGatewayName, 'appGatewaySslCert')
+            }
           }
         }
-      }
-      {
-        name: 'httpToHttpsRedirect'
-        properties: {
-          ruleType: 'Basic'
-          priority: 200
-          httpListener: {
-            id: resourceId(
-              'Microsoft.Network/applicationGateways/httpListeners',
-              appGatewayName,
-              'appGatewayHttpListener'
-            )
-          }
-          redirectConfiguration: {
-            id: resourceId(
-              'Microsoft.Network/applicationGateways/redirectConfigurations',
-              appGatewayName,
-              'httpToHttpsRedirect'
-            )
+      ] : [],
+      [
+        {
+          name: 'appGatewayHttpListener'
+          properties: {
+            frontendIPConfiguration: {
+              id: resourceId(
+                'Microsoft.Network/applicationGateways/frontendIPConfigurations',
+                appGatewayName,
+                'appGatewayFrontendIP'
+              )
+            }
+            frontendPort: {
+              id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', appGatewayName, 'port_80')
+            }
+            protocol: 'Http'
           }
         }
-      }
-    ]
-    redirectConfigurations: [
+      ]
+    )
+    requestRoutingRules: concat(
+      appGatewayCertData != '' ? [
+        {
+          name: 'httpsRoutingRule'
+          properties: {
+            ruleType: 'Basic'
+            priority: 100
+            httpListener: {
+              id: resourceId(
+                'Microsoft.Network/applicationGateways/httpListeners',
+                appGatewayName,
+                'appGatewayHttpsListener'
+              )
+            }
+            backendAddressPool: {
+              id: resourceId(
+                'Microsoft.Network/applicationGateways/backendAddressPools',
+                appGatewayName,
+                'wfe-backend-pool'
+              )
+            }
+            backendHttpSettings: {
+              id: resourceId(
+                'Microsoft.Network/applicationGateways/backendHttpSettingsCollection',
+                appGatewayName,
+                'appGatewayBackendHttpSettings'
+              )
+            }
+          }
+        }
+      ] : [],
+      [
+        {
+          name: appGatewayCertData != '' ? 'httpToHttpsRedirect' : 'httpRoutingRule'
+          properties: {
+            ruleType: 'Basic'
+            priority: 200
+            httpListener: {
+              id: resourceId(
+                'Microsoft.Network/applicationGateways/httpListeners',
+                appGatewayName,
+                'appGatewayHttpListener'
+              )
+            }
+            redirectConfiguration: appGatewayCertData != '' ? {
+              id: resourceId(
+                'Microsoft.Network/applicationGateways/redirectConfigurations',
+                appGatewayName,
+                'httpToHttpsRedirect'
+              )
+            } : null
+            backendAddressPool: appGatewayCertData == '' ? {
+              id: resourceId(
+                'Microsoft.Network/applicationGateways/backendAddressPools',
+                appGatewayName,
+                'wfe-backend-pool'
+              )
+            } : null
+            backendHttpSettings: appGatewayCertData == '' ? {
+              id: resourceId(
+                'Microsoft.Network/applicationGateways/backendHttpSettingsCollection',
+                appGatewayName,
+                'appGatewayBackendHttpSettings'
+              )
+            } : null
+          }
+        }
+      ]
+    )
+    redirectConfigurations: appGatewayCertData != '' ? [
       {
         name: 'httpToHttpsRedirect'
         properties: {
@@ -410,7 +534,7 @@ resource appGateway 'Microsoft.Network/applicationGateways@2023-11-01' = {
           includeQueryString: true
         }
       }
-    ]
+    ] : []
     probes: [
       {
         name: 'health-probe'

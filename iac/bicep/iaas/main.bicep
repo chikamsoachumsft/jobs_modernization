@@ -1,8 +1,8 @@
-targetScope = 'subscription'
+targetScope = 'resourceGroup'
 
 // ============================================================================
-// IAAS Infrastructure Module - Subscription Scope Entry Point
-// Deploys IaaS resources including VMSS, SQL VM, and Application Gateway
+// IAAS Infrastructure Module - Resource Group Scope
+// Deploys IaaS resources including WFE VM, SQL VM, and Application Gateway
 // ============================================================================
 
 param environment string = 'dev'
@@ -10,34 +10,24 @@ param applicationName string = 'jobsite'
 param location string = 'swedencentral'
 param frontendSubnetId string
 param dataSubnetId string
-param githubRunnersSubnetId string
 param adminUsername string = 'azureadmin'
 @secure()
 param adminPassword string = newGuid()
 param vmSize string = 'Standard_D2ds_v6'
-param vmssInstanceCount int = 2
 param sqlVmSize string = 'Standard_D4ds_v6'
 @secure()
 param appGatewayCertData string
 @secure()
 param appGatewayCertPassword string
-param resourceGroupName string = '${applicationName}-iaas-${environment}-rg'
+param allowedRdpIps array = []
 param tags object = {
   Application: 'JobSite'
   Environment: environment
   ManagedBy: 'Bicep'
 }
 
-// Resource Group
-resource iaasResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
-  name: resourceGroupName
-  location: location
-  tags: tags
-}
-
-// Deploy IAAS resources into the resource group
+// Deploy IAAS resources
 module iaasResources './iaas-resources.bicep' = {
-  scope: iaasResourceGroup
   name: 'iaas-resources-deployment'
   params: {
     environment: environment
@@ -45,20 +35,18 @@ module iaasResources './iaas-resources.bicep' = {
     location: location
     frontendSubnetId: frontendSubnetId
     dataSubnetId: dataSubnetId
-    githubRunnersSubnetId: githubRunnersSubnetId
     adminUsername: adminUsername
     adminPassword: adminPassword
     vmSize: vmSize
-    vmssInstanceCount: vmssInstanceCount
     sqlVmSize: sqlVmSize
     appGatewayCertData: appGatewayCertData
     appGatewayCertPassword: appGatewayCertPassword
+    allowedRdpIps: allowedRdpIps
     tags: tags
   }
 }
 
 // Outputs
-output resourceGroupName string = iaasResourceGroup.name
 output wfeVmId string = iaasResources.outputs.wfeVmId
 output wfeVmName string = iaasResources.outputs.wfeVmName
 output wfeVmPrivateIp string = iaasResources.outputs.wfeVmPrivateIp

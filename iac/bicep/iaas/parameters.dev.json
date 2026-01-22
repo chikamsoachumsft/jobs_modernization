@@ -1,0 +1,51 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "environment": {
+            "value": "dev"
+        },
+        "applicationName": {
+            "value": "jobsite"
+        },
+        "location": {
+            "value": "swedencentral"
+        },
+        "frontendSubnetId": {
+            "value": "/subscriptions/844eabcc-dc96-453b-8d45-bef3d566f3f8/resourceGroups/jobsite-core-dev-rg/providers/Microsoft.Network/virtualNetworks/jobsite-dev-vnet-ubzfsgu4p5eli/subnets/snet-fe"
+        },
+        "dataSubnetId": {
+            "value": "/subscriptions/844eabcc-dc96-453b-8d45-bef3d566f3f8/resourceGroups/jobsite-core-dev-rg/providers/Microsoft.Network/virtualNetworks/jobsite-dev-vnet-ubzfsgu4p5eli/subnets/snet-data"
+        },
+        "adminUsername": {
+            "value": "azureadmin"
+        },
+        "adminPassword": {
+            "value": "VmAdmin@2024!Secure"
+        },
+        "vmSize": {
+            "value": "Standard_D2ds_v6"
+        },
+        "sqlVmSize": {
+            "value": "Standard_D4ds_v6"
+        },
+        "appGatewayCertData": {
+            "value": ""
+        },
+        "appGatewayCertPassword": {
+            "value": ""
+        },
+        "allowedRdpIps": {
+            "value": [
+                "50.235.23.34/32"
+            ]
+        },
+        "tags": {
+            "value": {
+                "Application": "JobSite",
+                "Environment": "dev",
+                "ManagedBy": "Bicep"
+            }
+        }
+    }
+}
