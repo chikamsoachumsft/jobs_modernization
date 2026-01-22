@@ -326,55 +326,8 @@ resource acrPrivateEndpointDnsGroup 'Microsoft.Network/privateEndpoints/privateD
   }
 }
 
-// Container Apps Environment
-resource containerAppsEnv 'Microsoft.App/managedEnvironments@2023-05-01' = {
-  name: containerAppsEnvName
-  location: location
-  tags: tags
-  properties: {
-    vnetConfiguration: {
-      infrastructureSubnetId: resourceId(
-        'Microsoft.Network/virtualNetworks/subnets',
-        vnet.name,
-        subnetConfig.containerApps.name
-      )
-      internal: true
-    }
-    appLogsConfiguration: {
-      destination: 'log-analytics'
-      logAnalyticsConfiguration: {
-        customerId: logAnalyticsWorkspace.properties.customerId
-        sharedKey: logAnalyticsWorkspace.listKeys().primarySharedKey
-      }
-    }
-    zoneRedundant: false
-  }
-}
-
-// Container Apps Environment Diagnostics
-resource containerAppsEnvDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
-  name: 'diagnostics'
-  scope: containerAppsEnv
-  properties: {
-    workspaceId: logAnalyticsWorkspace.id
-    logs: [
-      {
-        category: 'ContainerAppConsoleLogs'
-        enabled: true
-      }
-      {
-        category: 'ContainerAppSystemLogs'
-        enabled: true
-      }
-    ]
-    metrics: [
-      {
-        category: 'AllMetrics'
-        enabled: true
-      }
-    ]
-  }
-}
+// Note: Container Apps Environment moved to PaaS resource group
+// Core only provides the subnet (snet-ca) for PaaS to use
 
 // Outputs
 output vnetId string = vnet.id
@@ -405,10 +358,6 @@ output natGatewayPublicIp string = publicIpNat.properties.ipAddress
 output acrId string = acr.id
 output acrName string = acr.name
 output acrLoginServer string = acr.properties.loginServer
-output containerAppsEnvId string = containerAppsEnv.id
-output containerAppsEnvName string = containerAppsEnv.name
-output containerAppsEnvDefaultDomain string = containerAppsEnv.properties.defaultDomain
-output containerAppsEnvStaticIp string = containerAppsEnv.properties.staticIp
 output containerAppsSubnetId string = resourceId(
   'Microsoft.Network/virtualNetworks/subnets',
   vnet.name,

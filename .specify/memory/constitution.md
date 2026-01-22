@@ -116,6 +116,7 @@ A specification feature is complete when:
 ## Resource Group Model
 
 **4-Layer Architecture**:
+
 - **Core (jobsite-core-dev-rg)**: Shared networking & services
 - **IaaS (jobsite-iaas-dev-rg)**: Long-lived application VMs + Web Front End
 - **PaaS (jobsite-paas-dev-rg)**: Managed services (auto-scaling)

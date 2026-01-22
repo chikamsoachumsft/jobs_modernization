@@ -1,6 +1,7 @@
 # JobSite Network & Infrastructure Redesign
 
 **Features**:
+
 - 001: Network Redesign (VNet /24 → /21, subnet sizing, production-ready architecture)
 - 002: Infrastructure Reorganization (4-layer RG model, App Gateway WFE, build agent isolation)
 
@@ -28,24 +29,28 @@ The current network architecture uses a /24 VNet split into seven /27 subnets, l
 ### Business Requirements
 
 #### Growth & Scalability
+
 - **BR-001**: Network must support 3-5x growth in resource count
 - **BR-002**: Application Gateway must scale to 125 instances without IP exhaustion
 - **BR-003**: AKS cluster must support 250+ nodes with standard workloads
 - **BR-004**: Container Apps environment must support production-level replica scaling
 
 #### Operational Requirements
+
 - **OR-001**: All resources must follow Microsoft Well-Architected Framework recommendations
 - **OR-002**: Implement monitoring and diagnostics for all networking resources
 - **OR-003**: Support both dev and production deployments with same network design
 - **OR-004**: Enable future addition of services (API Gateway, Load Balancer, etc.)
 
 #### Security & Compliance
+
 - **SR-001**: Separate subnets for different workload tiers (frontend, data, private endpoints)
 - **SR-002**: Build agents must have isolated subnet (snet-gh-runners)
 - **SR-003**: SQL workloads must have dedicated, protected subnet
 - **SR-004**: Private endpoints for sensitive services must be available
 
 #### Cost Requirements
+
 - **CR-001**: No increase in Azure networking costs (VNet/subnet resizing free)
 - **CR-002**: Resource sizing optimized for regional availability
 - **CR-003**: Support cost-effective regional choices (e.g., D-series v6 in Sweden Central)
@@ -142,6 +147,7 @@ The current network architecture uses a /24 VNet split into seven /27 subnets, l
 ## Success Criteria
 
 **Network Redesign**:
+
 - ✅ VNet properly sized with 44% growth buffer
 - ✅ All subnets follow Microsoft best practices
 - ✅ Deployment time < 15 minutes
@@ -149,6 +155,7 @@ The current network architecture uses a /24 VNet split into seven /27 subnets, l
 - ✅ Full audit logging enabled
 
 **Infrastructure Reorganization**:
+
 - ✅ 4-layer RG model properly implemented
 - ✅ App Gateway WFE operational with WAF
 - ✅ Build agents isolated and operational

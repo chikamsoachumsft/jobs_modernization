@@ -13,6 +13,7 @@ param sqlServiceObjective string
 param sqlAadAdminObjectId string
 param sqlAadAdminName string
 param peSubnetId string
+param containerAppsSubnetId string
 param logAnalyticsWorkspaceId string
 param coreResourceGroupName string
 param tags object
@@ -164,32 +165,25 @@ resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
   }
 }
 
-// Container App Environment - NOTE: Already created in Core layer
-// This resource is disabled to avoid subnet conflict with Core CAE
-// resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
-//   name: containerAppEnvName
-//   location: location
-//   tags: tags
-//   properties: {
-//     appLogsConfiguration: {
-//       destination: 'log-analytics'
-//       logAnalyticsConfiguration: {
-//         customerId: logAnalytics.properties.customerId
-//         sharedKey: logAnalytics.listKeys().primarySharedKey
-//       }
-//     }
-//     vnetConfiguration: {
-//       infrastructureSubnetId: containerAppSubnetId
-//       internal: false
-//     }
-//     zoneRedundant: false
-//   }
-// }
-
-// Reference existing Container App Environment from Core layer
-resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' existing = {
+// Container Apps Environment - Owned by PaaS layer
+resource containerAppEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
   name: containerAppEnvName
-  scope: resourceGroup(coreResourceGroupName)
+  location: location
+  tags: tags
+  properties: {
+    appLogsConfiguration: {
+      destination: 'log-analytics'
+      logAnalyticsConfiguration: {
+        customerId: reference(logAnalyticsWorkspaceId, '2022-10-01').customerId
+        sharedKey: listKeys(logAnalyticsWorkspaceId, '2022-10-01').primarySharedKey
+      }
+    }
+    vnetConfiguration: {
+      infrastructureSubnetId: containerAppsSubnetId
+      internal: true
+    }
+    zoneRedundant: false
+  }
 }
 
 // Grant App Service Managed Identity pull access to ACR

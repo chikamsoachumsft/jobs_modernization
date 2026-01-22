@@ -14,6 +14,7 @@ param sqlServiceObjective string = 'S1'
 param sqlAadAdminObjectId string
 param sqlAadAdminName string
 param peSubnetId string
+param containerAppsSubnetId string
 param logAnalyticsWorkspaceId string
 param coreResourceGroupName string
 param resourceGroupName string = '${applicationName}-paas-${environment}-rg'
@@ -44,6 +45,7 @@ module paasResources './paas-resources.bicep' = {
     sqlAadAdminObjectId: sqlAadAdminObjectId
     sqlAadAdminName: sqlAadAdminName
     peSubnetId: peSubnetId
+    containerAppsSubnetId: containerAppsSubnetId
     logAnalyticsWorkspaceId: logAnalyticsWorkspaceId
     coreResourceGroupName: coreResourceGroupName
     tags: tags
