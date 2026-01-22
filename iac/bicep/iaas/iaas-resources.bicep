@@ -85,6 +85,7 @@ resource vmss 'Microsoft.Compute/virtualMachineScaleSets@2023-09-01' = {
         }
       }
       networkProfile: {
+        networkApiVersion: '2023-05-01'
         networkInterfaceConfigurations: [
           {
             name: 'vmss-nic'
