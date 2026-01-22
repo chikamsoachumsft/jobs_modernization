@@ -59,8 +59,9 @@ module iaasResources './iaas-resources.bicep' = {
 
 // Outputs
 output resourceGroupName string = iaasResourceGroup.name
-output vmssId string = iaasResources.outputs.vmssId
-output vmssName string = iaasResources.outputs.vmssName
+output wfeVmId string = iaasResources.outputs.wfeVmId
+output wfeVmName string = iaasResources.outputs.wfeVmName
+output wfeVmPrivateIp string = iaasResources.outputs.wfeVmPrivateIp
 output sqlVmId string = iaasResources.outputs.sqlVmId
 output sqlVmName string = iaasResources.outputs.sqlVmName
 output sqlVmPrivateIp string = iaasResources.outputs.sqlVmPrivateIp
