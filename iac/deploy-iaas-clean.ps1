@@ -1,13 +1,22 @@
 #!/usr/bin/env pwsh
 # IAAS Deployment - Final Clean Version
-# Generated Credentials: Username: azureadmin | Password: 6-CtFhZr1y6nm8Q&C#to
+# SECURITY: Passwords must be provided via parameters, environment variables, or Key Vault
+# DO NOT hardcode passwords in this file
 
 param(
-    [string]$VMPassword = "6-CtFhZr1y6nm8Q&C#to",
-    [string]$CertPassword = "4lbeGK1H?&Xia12H%WGI"
+    [string]$VMPassword,
+    [string]$CertPassword
 )
 
 $ErrorActionPreference = 'Stop'
+
+# Validate credentials are provided
+if ([string]::IsNullOrWhiteSpace($VMPassword) -or [string]::IsNullOrWhiteSpace($CertPassword)) {
+    Write-Host "`n❌ ERROR: Passwords must be provided!" -ForegroundColor Red
+    Write-Host "Usage: .\deploy-iaas-clean.ps1 -VMPassword '<password>' -CertPassword '<password>'" -ForegroundColor Yellow
+    Write-Host "Or set environment variables: JSSK_VM_PASSWORD and JSSK_CERT_PASSWORD" -ForegroundColor Yellow
+    exit 1
+}
 
 Write-Host "`n" + "=" * 70 -ForegroundColor Cyan
 Write-Host "IAAS INFRASTRUCTURE DEPLOYMENT" -ForegroundColor Cyan
