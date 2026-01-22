@@ -11,6 +11,9 @@ param vnetAddressPrefix string
 param sqlAdminUsername string
 @secure()
 param sqlAdminPassword string
+param wfeAdminUsername string
+@secure()
+param wfeAdminPassword string
 param tags object
 
 // Variables
@@ -250,6 +253,23 @@ resource sqlAdminPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' =
   }
 }
 
+// WFE VM Admin Credentials
+resource wfeAdminUsernameSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'wfe-admin-username'
+  properties: {
+    value: wfeAdminUsername
+  }
+}
+
+resource wfeAdminPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'wfe-admin-password'
+  properties: {
+    value: wfeAdminPassword
+  }
+}
+
 // Azure Container Registry
 resource acr 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
   name: acrName
@@ -449,6 +469,7 @@ output privateDnsZoneName string = privateDnsZone.name
 output logAnalyticsWorkspaceId string = logAnalyticsWorkspace.id
 output logAnalyticsWorkspaceName string = logAnalyticsWorkspace.name
 output natGatewayPublicIp string = publicIpNat.properties.ipAddress
+output natGatewayName string = natGateway.name
 output acrId string = acr.id
 output acrName string = acr.name
 output acrLoginServer string = acr.properties.loginServer

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "48152968387437781"
+      "templateHash": "13438807014726067671"
     }
   },
   "parameters": {
@@ -42,6 +42,17 @@
     },
     "tags": {
       "type": "object"
+    },
+    "keyVaultName": {
+      "type": "string"
+    },
+    "appInsightsInstrumentationKey": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "appInsightsConnectionString": {
+      "type": "string",
+      "defaultValue": ""
     }
   },
   "variables": {
@@ -50,9 +61,76 @@
     "wfeVmName": "[format('{0}-wfe-{1}', variables('resourcePrefix'), variables('uniqueSuffix'))]",
     "sqlVmName": "[format('{0}-sqlvm-{1}', variables('resourcePrefix'), variables('uniqueSuffix'))]",
     "nsgFrontendName": "[format('{0}-nsg-frontend', variables('resourcePrefix'))]",
-    "nsgDataName": "[format('{0}-nsg-data', variables('resourcePrefix'))]"
+    "nsgDataName": "[format('{0}-nsg-data', variables('resourcePrefix'))]",
+    "loadBalancerName": "[format('{0}-lb', variables('resourcePrefix'))]",
+    "loadBalancerPublicIpName": "[format('{0}-lb-pip', variables('resourcePrefix'))]",
+    "backendPoolName": "BackendPool",
+    "frontendIpConfigName": "LoadBalancerFrontEnd"
   },
   "resources": [
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2023-11-01",
+      "name": "[variables('loadBalancerPublicIpName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "publicIPAllocationMethod": "Static",
+        "dnsSettings": {
+          "domainNameLabel": "[format('{0}-lb-{1}', variables('resourcePrefix'), variables('uniqueSuffix'))]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Network/loadBalancers",
+      "apiVersion": "2023-11-01",
+      "name": "[variables('loadBalancerName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "frontendIPConfigurations": [
+          {
+            "name": "[variables('frontendIpConfigName')]",
+            "properties": {
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('loadBalancerPublicIpName'))]"
+              }
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "[variables('backendPoolName')]"
+          }
+        ],
+        "inboundNatRules": [
+          {
+            "name": "rdp-nat-rule",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations', variables('loadBalancerName'), variables('frontendIpConfigName'))]"
+              },
+              "protocol": "Tcp",
+              "frontendPortRangeStart": 50001,
+              "frontendPortRangeEnd": 50100,
+              "backendPort": 3389,
+              "backendAddressPool": {
+                "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalancerName'), variables('backendPoolName'))]"
+              }
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('loadBalancerPublicIpName'))]"
+      ]
+    },
     {
       "type": "Microsoft.Network/networkSecurityGroups",
       "apiVersion": "2023-11-01",
@@ -101,6 +179,19 @@
             }
           },
           {
+            "name": "AllowSQLToDataSubnet",
+            "properties": {
+              "protocol": "Tcp",
+              "sourcePortRange": "*",
+              "destinationPortRange": "1433",
+              "sourceAddressPrefix": "10.50.1.0/26",
+              "destinationAddressPrefix": "*",
+              "access": "Allow",
+              "priority": 125,
+              "direction": "Outbound"
+            }
+          },
+          {
             "name": "AllowWinRMHTTP",
             "properties": {
               "protocol": "Tcp",
@@ -138,7 +229,7 @@
       "properties": {
         "securityRules": [
           {
-            "name": "AllowSQLFromWebVM",
+            "name": "AllowSQLFromFrontendSubnet",
             "properties": {
               "protocol": "Tcp",
               "sourcePortRange": "*",
@@ -222,12 +313,18 @@
               "subnet": {
                 "id": "[parameters('frontendSubnetId')]"
               },
-              "privateIPAllocationMethod": "Dynamic"
+              "privateIPAllocationMethod": "Dynamic",
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalancerName'), variables('backendPoolName'))]"
+                }
+              ]
             }
           }
         ]
       },
       "dependsOn": [
+        "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]",
         "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgFrontendName'))]"
       ]
     },
@@ -237,12 +334,15 @@
       "name": "[variables('wfeVmName')]",
       "location": "[parameters('location')]",
       "tags": "[parameters('tags')]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
       "properties": {
         "hardwareProfile": {
           "vmSize": "[parameters('vmSize')]"
         },
         "osProfile": {
-          "computerName": "[variables('wfeVmName')]",
+          "computerName": "jobsite-wfe",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
           "windowsConfiguration": {
@@ -277,6 +377,209 @@
       ]
     },
     {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('wfeVmName'), 'EnableRDP')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.10",
+        "autoUpgradeMinorVersion": true,
+        "settings": {},
+        "protectedSettings": {
+          "commandToExecute": "powershell.exe -ExecutionPolicy Bypass -Command \"Set-ItemProperty -Path HKLM:\\System\\CurrentControlSet\\Control\\Terminal` Server -Name fDenyTSConnections -Value 0; Enable-NetFirewallRule -DisplayGroup Remote` Desktop; Set-Service -Name TermService -StartupType Automatic; Start-Service -Name TermService\""
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('wfeVmName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('wfeVmName'), 'AADLoginForWindows')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.Azure.ActiveDirectory",
+        "type": "AADLoginForWindows",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "mdmId": ""
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('wfeVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('wfeVmName'), 'EnableRDP')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('wfeVmName'), 'IaaSAntimalware')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.Azure.Security",
+        "type": "IaaSAntimalware",
+        "typeHandlerVersion": "1.3",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "AntimalwareEnabled": true,
+          "RealtimeProtectionEnabled": true,
+          "ScheduledScanSettings": {
+            "isEnabled": true,
+            "day": 7,
+            "time": 120,
+            "scanType": "Quick"
+          },
+          "Exclusions": {
+            "Extensions": ".log;.ldf",
+            "Paths": "C:\\Windows\\Temp"
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('wfeVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('wfeVmName'), 'AADLoginForWindows')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('wfeVmName'), 'AzurePolicyforWindows')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.GuestConfiguration",
+        "type": "ConfigurationforWindows",
+        "typeHandlerVersion": "1.0",
+        "autoUpgradeMinorVersion": true,
+        "enableAutomaticUpgrade": true,
+        "settings": {}
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('wfeVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('wfeVmName'), 'IaaSAntimalware')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('wfeVmName'), 'AzureMonitorWindowsAgent')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.Azure.Monitor",
+        "type": "AzureMonitorWindowsAgent",
+        "typeHandlerVersion": "1.0",
+        "autoUpgradeMinorVersion": true,
+        "enableAutomaticUpgrade": true,
+        "settings": {}
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('wfeVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('wfeVmName'), 'AzurePolicyforWindows')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('wfeVmName'), 'DependencyAgentWindows')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
+        "type": "DependencyAgentWindows",
+        "typeHandlerVersion": "9.10",
+        "autoUpgradeMinorVersion": true,
+        "settings": {}
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('wfeVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('wfeVmName'), 'AzureMonitorWindowsAgent')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('wfeVmName'), 'KeyVaultForWindows')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.Azure.KeyVault",
+        "type": "KeyVaultForWindows",
+        "typeHandlerVersion": "3.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "secretsManagementSettings": {
+            "pollingIntervalInS": "3600",
+            "linkOnRenewal": false,
+            "observedCertificates": [],
+            "requireInitialSync": false
+          },
+          "authenticationSettings": {
+            "msiEndpoint": "http://169.254.169.254/metadata/identity/oauth2/token",
+            "msiClientId": ""
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('wfeVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('wfeVmName'), 'DependencyAgentWindows')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('wfeVmName'), 'DSC')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.Powershell",
+        "type": "DSC",
+        "typeHandlerVersion": "2.77",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "configuration": {
+            "url": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/demos/dsc-extension-iis-server-windows-vm/ContosoWebsite.ps1.zip",
+            "script": "ContosoWebsite.ps1",
+            "function": "ContosoWebsite"
+          }
+        },
+        "protectedSettings": {}
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('wfeVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('wfeVmName'), 'KeyVaultForWindows')]"
+      ]
+    },
+    {
+      "condition": "[not(empty(parameters('appInsightsConnectionString')))]",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('wfeVmName'), 'ApplicationMonitoringWindows')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.Azure.Diagnostics",
+        "type": "ApplicationInsightsMonitoringWindows",
+        "typeHandlerVersion": "2.8",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "instrumentationKey": "[parameters('appInsightsInstrumentationKey')]",
+          "connectionString": "[parameters('appInsightsConnectionString')]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('wfeVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('wfeVmName'), 'DSC')]"
+      ]
+    },
+    {
       "type": "Microsoft.Network/networkInterfaces",
       "apiVersion": "2023-11-01",
       "name": "[format('{0}-nic', variables('sqlVmName'))]",
@@ -293,12 +596,18 @@
               "subnet": {
                 "id": "[parameters('dataSubnetId')]"
               },
-              "privateIPAllocationMethod": "Dynamic"
+              "privateIPAllocationMethod": "Dynamic",
+              "loadBalancerBackendAddressPools": [
+                {
+                  "id": "[resourceId('Microsoft.Network/loadBalancers/backendAddressPools', variables('loadBalancerName'), variables('backendPoolName'))]"
+                }
+              ]
             }
           }
         ]
       },
       "dependsOn": [
+        "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]",
         "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgDataName'))]"
       ]
     },
@@ -308,12 +617,15 @@
       "name": "[variables('sqlVmName')]",
       "location": "[parameters('location')]",
       "tags": "[parameters('tags')]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
       "properties": {
         "hardwareProfile": {
           "vmSize": "[parameters('sqlVmSize')]"
         },
         "osProfile": {
-          "computerName": "[variables('sqlVmName')]",
+          "computerName": "jobsite-sql",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
           "windowsConfiguration": {
@@ -325,7 +637,7 @@
           "imageReference": {
             "publisher": "MicrosoftSQLServer",
             "offer": "sql2022-ws2022",
-            "sku": "standard",
+            "sku": "enterprise-gen2",
             "version": "latest"
           },
           "osDisk": {
@@ -366,9 +678,165 @@
       ]
     },
     {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('sqlVmName'), 'EnableRDP')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.10",
+        "autoUpgradeMinorVersion": true,
+        "settings": {},
+        "protectedSettings": {
+          "commandToExecute": "powershell.exe -ExecutionPolicy Bypass -Command \"Set-ItemProperty -Path HKLM:\\System\\CurrentControlSet\\Control\\Terminal` Server -Name fDenyTSConnections -Value 0; Enable-NetFirewallRule -DisplayGroup Remote` Desktop; Set-Service -Name TermService -StartupType Automatic; Start-Service -Name TermService\""
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('sqlVmName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('sqlVmName'), 'AADLoginForWindows')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.Azure.ActiveDirectory",
+        "type": "AADLoginForWindows",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "mdmId": ""
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('sqlVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('sqlVmName'), 'EnableRDP')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('sqlVmName'), 'IaaSAntimalware')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.Azure.Security",
+        "type": "IaaSAntimalware",
+        "typeHandlerVersion": "1.3",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "AntimalwareEnabled": true,
+          "RealtimeProtectionEnabled": true,
+          "ScheduledScanSettings": {
+            "isEnabled": true,
+            "day": 7,
+            "time": 120,
+            "scanType": "Quick"
+          },
+          "Exclusions": {
+            "Extensions": ".log;.ldf;.mdf;.ndf",
+            "Paths": "C:\\Program Files\\Microsoft SQL Server"
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('sqlVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('sqlVmName'), 'AADLoginForWindows')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('sqlVmName'), 'AzurePolicyforWindows')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.GuestConfiguration",
+        "type": "ConfigurationforWindows",
+        "typeHandlerVersion": "1.0",
+        "autoUpgradeMinorVersion": true,
+        "enableAutomaticUpgrade": true,
+        "settings": {}
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('sqlVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('sqlVmName'), 'IaaSAntimalware')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('sqlVmName'), 'AzureMonitorWindowsAgent')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.Azure.Monitor",
+        "type": "AzureMonitorWindowsAgent",
+        "typeHandlerVersion": "1.0",
+        "autoUpgradeMinorVersion": true,
+        "enableAutomaticUpgrade": true,
+        "settings": {}
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('sqlVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('sqlVmName'), 'AzurePolicyforWindows')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('sqlVmName'), 'DependencyAgentWindows')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
+        "type": "DependencyAgentWindows",
+        "typeHandlerVersion": "9.10",
+        "autoUpgradeMinorVersion": true,
+        "settings": {}
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('sqlVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('sqlVmName'), 'AzureMonitorWindowsAgent')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', variables('sqlVmName'), 'KeyVaultForWindows')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "publisher": "Microsoft.Azure.KeyVault",
+        "type": "KeyVaultForWindows",
+        "typeHandlerVersion": "3.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "secretsManagementSettings": {
+            "pollingIntervalInS": "3600",
+            "linkOnRenewal": false,
+            "observedCertificates": [],
+            "requireInitialSync": false
+          },
+          "authenticationSettings": {
+            "msiEndpoint": "http://169.254.169.254/metadata/identity/oauth2/token",
+            "msiClientId": ""
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('sqlVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('sqlVmName'), 'DependencyAgentWindows')]"
+      ]
+    },
+    {
       "type": "Microsoft.SqlVirtualMachine/sqlVirtualMachines",
-      "apiVersion": "2023-10-01-preview",
-      "name": "[format('{0}-sqlvm-config', variables('sqlVmName'))]",
+      "apiVersion": "2023-10-01",
+      "name": "[variables('sqlVmName')]",
       "location": "[parameters('location')]",
       "tags": "[parameters('tags')]",
       "properties": {
@@ -387,11 +855,28 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Compute/virtualMachines', variables('sqlVmName'))]"
+        "[resourceId('Microsoft.Compute/virtualMachines', variables('sqlVmName'))]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions', variables('sqlVmName'), 'KeyVaultForWindows')]"
       ]
     }
   ],
   "outputs": {
+    "loadBalancerPublicIp": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('loadBalancerPublicIpName')), '2023-11-01').ipAddress]"
+    },
+    "loadBalancerFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('loadBalancerPublicIpName')), '2023-11-01').dnsSettings.fqdn]"
+    },
+    "loadBalancerId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Network/loadBalancers', variables('loadBalancerName'))]"
+    },
+    "loadBalancerName": {
+      "type": "string",
+      "value": "[variables('loadBalancerName')]"
+    },
     "wfeVmId": {
       "type": "string",
       "value": "[resourceId('Microsoft.Compute/virtualMachines', variables('wfeVmName'))]"

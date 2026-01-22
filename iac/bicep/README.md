@@ -17,7 +17,14 @@
 → Read [../NETWORK_REDESIGN.md](../NETWORK_REDESIGN.md)  
 → Then [../../specs/001-network-redesign/plan.md](../../specs/001-network-redesign/plan.md)
 
-### 🔍 Detailed Reference
+### � Network Security Configuration
+
+→ **[NETWORK_SECURITY_SUMMARY.md](NETWORK_SECURITY_SUMMARY.md)** - Quick overview (5 min)  
+→ **[NETWORK_SECURITY_CONFIGURATION.md](NETWORK_SECURITY_CONFIGURATION.md)** - Complete details (20 min)  
+→ **[NETWORK_SECURITY_VALIDATION.md](NETWORK_SECURITY_VALIDATION.md)** - Testing & validation  
+→ **[DEPLOYMENT_EXAMPLES.md](DEPLOYMENT_EXAMPLES.md)** - PowerShell, CLI, Terraform scripts
+
+### �🔍 Detailed Reference
 
 → Use [QUICK_REFERENCE_CARD.md](QUICK_REFERENCE_CARD.md) - Commands to print
 → Or [INDEX.md](INDEX.md) - Complete file listing

@@ -8,13 +8,13 @@ targetScope = 'subscription'
 param environment string = 'dev'
 param applicationName string = 'jobsite'
 param location string = 'swedencentral'
-param githubRunnersSubnetId string
+param coreResourceGroupName string = 'jobsite-core-dev-rg'
+param resourceGroupName string = '${applicationName}-agents-${environment}-rg'
 param adminUsername string = 'azureadmin'
 @secure()
 param adminPassword string = newGuid()
 param agentVmSize string = 'Standard_D2ds_v6'
 param vmssInstanceCount int = 2
-param resourceGroupName string = '${applicationName}-agents-${environment}-rg'
 param tags object = {
   Application: 'JobSite'
   Environment: environment
@@ -22,12 +22,45 @@ param tags object = {
   Layer: 'Agents'
 }
 
-// Deploy agents to existing resource group
+// ============================================================================
+// RESOURCE GROUP DEFINITION
+// ============================================================================
+
 resource agentsResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' = {
   name: resourceGroupName
   location: location
   tags: tags
 }
+
+// ============================================================================
+// REFERENCE EXISTING CORE RESOURCES
+// ============================================================================
+
+resource coreResourceGroup 'Microsoft.Resources/resourceGroups@2024-03-01' existing = {
+  name: coreResourceGroupName
+}
+
+// Get reference to the VNet from core RG
+resource vnet 'Microsoft.Network/virtualNetworks@2023-11-01' existing = {
+  name: 'jobsite-dev-vnet-ubzfsgu4p5eli'
+  scope: coreResourceGroup
+}
+
+// Get GitHub runners subnet
+resource githubRunnersSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
+  name: 'snet-github-runners'
+  parent: vnet
+}
+
+// Get GitHub runners subnet
+resource githubRunnersSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
+  name: 'snet-github-runners'
+  parent: vnet
+}
+
+// ============================================================================
+// DEPLOY AGENTS RESOURCES
+// ============================================================================
 
 // Deploy agents resources
 module agentsResources './agents-resources.bicep' = {
@@ -37,7 +70,7 @@ module agentsResources './agents-resources.bicep' = {
     environment: environment
     applicationName: applicationName
     location: location
-    githubRunnersSubnetId: githubRunnersSubnetId
+    githubRunnersSubnetId: githubRunnersSubnet.id
     adminUsername: adminUsername
     adminPassword: adminPassword
     agentVmSize: agentVmSize
@@ -45,6 +78,10 @@ module agentsResources './agents-resources.bicep' = {
     tags: tags
   }
 }
+
+// ============================================================================
+// OUTPUTS
+// ============================================================================
 
 // Outputs
 output agentsResourceGroupId string = agentsResourceGroup.id

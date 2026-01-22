@@ -27,10 +27,8 @@ if (-not $coreDeployment) {
 }
 
 $outputs = $coreDeployment.properties.outputs
-$githubRunnersSubnetId = $outputs.githubRunnersSubnetId.value
 
 Write-Host "   ✅ Core outputs retrieved" -ForegroundColor Green
-Write-Host "   GitHub Runners Subnet: $githubRunnersSubnetId" -ForegroundColor Gray
 Write-Host ""
 
 # ============================================================================
@@ -47,7 +45,8 @@ $existingPassword = az keyvault secret show --vault-name $keyVaultName --name "a
 if ($existingPassword) {
     $adminPassword = $existingPassword.value
     Write-Host "   ✅ Using existing password from Key Vault" -ForegroundColor Green
-} else {
+}
+else {
     # Generate new password
     $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     $special = "!@#$%"
@@ -69,21 +68,22 @@ Write-Host ""
 Write-Host "3. Deploying agents infrastructure..." -ForegroundColor Yellow
 
 $agentParams = @{
-    environment = $environment
-    applicationName = $applicationName
-    location = $location
-    githubRunnersSubnetId = $githubRunnersSubnetId
-    adminPassword = $adminPassword
-    agentVmSize = "Standard_D2ds_v6"
+    environment       = $environment
+    applicationName   = $applicationName
+    location          = $location
+    adminPassword     = $adminPassword
+    agentVmSize       = "Standard_D2ds_v6"
     vmssInstanceCount = 2
 }
 
 $paramString = $agentParams.GetEnumerator() | ForEach-Object {
     if ($_.Value -is [securestring]) {
         "$($_.Key)=$($_.Value)"
-    } elseif ($_.Value -is [string] -and $_.Value.StartsWith("/subscriptions/")) {
+    }
+    elseif ($_.Value -is [string] -and $_.Value.StartsWith("/subscriptions/")) {
         "$($_.Key)=$($_.Value)"
-    } else {
+    }
+    else {
         "$($_.Key)=$($_.Value)"
     }
 }
@@ -114,7 +114,8 @@ if ($?) {
     Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
     Write-Host "✅ AGENTS DEPLOYMENT INITIATED" -ForegroundColor Green
     Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
-} else {
+}
+else {
     Write-Host "❌ Deployment failed" -ForegroundColor Red
     Write-Host $deployment -ForegroundColor Red
     exit 1

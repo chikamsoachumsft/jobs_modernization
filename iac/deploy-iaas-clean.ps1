@@ -17,37 +17,32 @@ Start-Sleep -Seconds 60
 # Get Core Outputs
 Write-Host "2. Retrieving core infrastructure outputs..." -ForegroundColor Yellow
 $coreDeployment = az deployment sub show --name "jobsite-core-dev" -o json | ConvertFrom-Json
-$outputs = $coreDeployment.properties.outputs
 
-$frontendSubnetId = $outputs.frontendSubnetId.value
-$dataSubnetId = $outputs.dataSubnetId.value
-$githubRunnersSubnetId = $outputs.githubRunnersSubnetId.value
-$keyVaultName = $outputs.keyVaultName.value
+Write-Host "   ✅ Core deployment verified" -ForegroundColor Green
+Write-Host ""
 
-Write-Host "   ✅ Core outputs retrieved" -ForegroundColor Green
-Write-Host "   Frontend Subnet: $frontendSubnetId" -ForegroundColor Gray
-Write-Host "   Data Subnet: $dataSubnetId" -ForegroundColor Gray
+# Generate admin password
+Write-Host "3. Generating admin credentials..." -ForegroundColor Yellow
+$chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+$special = "!@#$%"
+$adminPassword = -join ((1..12) | ForEach-Object { $chars[(Get-Random -Maximum $chars.Length)] })
+$adminPassword += $special[(Get-Random -Maximum $special.Length)]
+$adminPassword += "Aa1"
+
+Write-Host "   ✅ Credentials generated" -ForegroundColor Green
 Write-Host ""
 
 # Deploy IaaS using subscription-level template
-Write-Host "3. Deploying IaaS infrastructure..." -ForegroundColor Yellow
-Write-Host "   Components: App Gateway, WFE VM, SQL VM" -ForegroundColor Gray
+Write-Host "4. Deploying IaaS infrastructure..." -ForegroundColor Yellow
+Write-Host "   Components: Load Balancer, WFE VM, SQL VM" -ForegroundColor Gray
 Write-Host ""
 
 $deployment = az deployment sub create `
     --name "jobsite-iaas-dev" `
     --location $location `
     --template-file "./bicep/iaas/main.bicep" `
-    --parameters `
-        environment=$environment `
-        applicationName=$applicationName `
-        location=$location `
-        frontendSubnetId=$frontendSubnetId `
-        dataSubnetId=$dataSubnetId `
-        githubRunnersSubnetId=$githubRunnersSubnetId `
-        vmSize="Standard_D2ds_v6" `
-        vmssInstanceCount=0 `
-        sqlVmSize="Standard_D4ds_v6" `
+    --parameters "@./iaas-params.json" `
+    --parameters adminPassword=$adminPassword `
     -o json 2>&1
 
 if ($LASTEXITCODE -eq 0) {
@@ -55,7 +50,7 @@ if ($LASTEXITCODE -eq 0) {
     
     $deploymentJson = $deployment | ConvertFrom-Json
     Write-Host ""
-    Write-Host "4. Deployment Summary:" -ForegroundColor Cyan
+    Write-Host "5. Deployment Summary:" -ForegroundColor Cyan
     Write-Host "   Resource Group: jobsite-iaas-dev-rg" -ForegroundColor Gray
     Write-Host "   Status: Succeeded" -ForegroundColor Green
     
@@ -65,11 +60,25 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Resources Created:" -ForegroundColor Cyan
-    Write-Host "  ✓ Application Gateway v2 (WFE network tier)" -ForegroundColor Green
+    Write-Host "  ✓ Standard Load Balancer with Inbound NAT Rules V2" -ForegroundColor Green
     Write-Host "  ✓ WFE VM (Web Front End)" -ForegroundColor Green
     Write-Host "  ✓ SQL Server VM (Data tier)" -ForegroundColor Green
     Write-Host ""
-} else {
+    Write-Host "Load Balancer Public IP:" -ForegroundColor Cyan
+    $lbPublicIp = $deploymentJson.properties.outputs.loadBalancerPublicIp.value
+    $lbFqdn = $deploymentJson.properties.outputs.loadBalancerFqdn.value
+    Write-Host "  IP: $lbPublicIp" -ForegroundColor Yellow
+    Write-Host "  FQDN: $lbFqdn" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "RDP Access (Inbound NAT Rules V2):" -ForegroundColor Cyan
+    Write-Host "  View port mappings in Azure Portal:" -ForegroundColor Gray
+    Write-Host "  Load Balancer > Inbound NAT rules > rdp-nat-rule > View port mappings" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  Port range: 50001-50100" -ForegroundColor Gray
+    Write-Host "  Example: mstsc /v:${lbPublicIp}:50001" -ForegroundColor Gray
+    Write-Host ""
+}
+else {
     Write-Host "❌ Deployment failed" -ForegroundColor Red
     Write-Host $deployment -ForegroundColor Red
     exit 1

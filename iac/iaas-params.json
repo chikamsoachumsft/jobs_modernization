@@ -1,0 +1,26 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "environment": {
+            "value": "dev"
+        },
+        "applicationName": {
+            "value": "jobsite"
+        },
+        "location": {
+            "value": "swedencentral"
+        },
+        "vmSize": {
+            "value": "Standard_D2ds_v6"
+        },
+        "sqlVmSize": {
+            "value": "Standard_D4ds_v6"
+        },
+        "allowedRdpIps": {
+            "value": [
+                "50.235.23.34/32"
+            ]
+        }
+    }
+}

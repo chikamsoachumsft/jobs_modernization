@@ -11,8 +11,16 @@ param applicationName string = 'jobsite'
 param location string = 'swedencentral'
 param vnetAddressPrefix string = '10.50.0.0/21'
 param sqlAdminUsername string = 'jobsiteadmin'
+
+@description('SQL Administrator password (20+ characters, uppercase, lowercase, numbers, special chars)')
 @secure()
-param sqlAdminPassword string = newGuid()
+param sqlAdminPassword string
+
+param wfeAdminUsername string = 'azureadmin'
+
+@description('WFE Administrator password (20+ characters, uppercase, lowercase, numbers, special chars)')
+@secure()
+param wfeAdminPassword string
 param tags object = {
   Application: 'JobSite'
   Environment: environment
@@ -39,6 +47,8 @@ module coreResources './core-resources.bicep' = {
     vnetAddressPrefix: vnetAddressPrefix
     sqlAdminUsername: sqlAdminUsername
     sqlAdminPassword: sqlAdminPassword
+    wfeAdminUsername: wfeAdminUsername
+    wfeAdminPassword: wfeAdminPassword
     tags: tags
   }
 }
