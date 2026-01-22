@@ -1,11 +1,11 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "metadata": {
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "12402456138893717284"
+      "templateHash": "11992590956771197502"
     }
   },
   "parameters": {
@@ -27,9 +27,6 @@
     "dataSubnetId": {
       "type": "string"
     },
-    "githubRunnersSubnetId": {
-      "type": "string"
-    },
     "adminUsername": {
       "type": "string",
       "defaultValue": "azureadmin"
@@ -42,23 +39,13 @@
       "type": "string",
       "defaultValue": "Standard_D2ds_v6"
     },
-    "vmssInstanceCount": {
-      "type": "int",
-      "defaultValue": 2
-    },
     "sqlVmSize": {
       "type": "string",
       "defaultValue": "Standard_D4ds_v6"
     },
-    "appGatewayCertData": {
-      "type": "securestring"
-    },
-    "appGatewayCertPassword": {
-      "type": "securestring"
-    },
-    "resourceGroupName": {
-      "type": "string",
-      "defaultValue": "[format('{0}-iaas-{1}-rg', parameters('applicationName'), parameters('environment'))]"
+    "allowedRdpIps": {
+      "type": "array",
+      "defaultValue": []
     },
     "tags": {
       "type": "object",
@@ -71,17 +58,9 @@
   },
   "resources": [
     {
-      "type": "Microsoft.Resources/resourceGroups",
-      "apiVersion": "2024-03-01",
-      "name": "[parameters('resourceGroupName')]",
-      "location": "[parameters('location')]",
-      "tags": "[parameters('tags')]"
-    },
-    {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2025-04-01",
       "name": "iaas-resources-deployment",
-      "resourceGroup": "[parameters('resourceGroupName')]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -103,9 +82,6 @@
           "dataSubnetId": {
             "value": "[parameters('dataSubnetId')]"
           },
-          "githubRunnersSubnetId": {
-            "value": "[parameters('githubRunnersSubnetId')]"
-          },
           "adminUsername": {
             "value": "[parameters('adminUsername')]"
           },
@@ -115,17 +91,11 @@
           "vmSize": {
             "value": "[parameters('vmSize')]"
           },
-          "vmssInstanceCount": {
-            "value": "[parameters('vmssInstanceCount')]"
-          },
           "sqlVmSize": {
             "value": "[parameters('sqlVmSize')]"
           },
-          "appGatewayCertData": {
-            "value": "[parameters('appGatewayCertData')]"
-          },
-          "appGatewayCertPassword": {
-            "value": "[parameters('appGatewayCertPassword')]"
+          "allowedRdpIps": {
+            "value": "[parameters('allowedRdpIps')]"
           },
           "tags": {
             "value": "[parameters('tags')]"
@@ -138,7 +108,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.39.26.7824",
-              "templateHash": "3669613268757451577"
+              "templateHash": "48152968387437781"
             }
           },
           "parameters": {
@@ -157,28 +127,20 @@
             "dataSubnetId": {
               "type": "string"
             },
-            "githubRunnersSubnetId": {
-              "type": "string"
-            },
             "adminUsername": {
               "type": "string"
             },
             "vmSize": {
               "type": "string"
             },
-            "vmssInstanceCount": {
-              "type": "int"
-            },
             "sqlVmSize": {
               "type": "string"
             },
+            "allowedRdpIps": {
+              "type": "array",
+              "defaultValue": []
+            },
             "adminPassword": {
-              "type": "securestring"
-            },
-            "appGatewayCertData": {
-              "type": "securestring"
-            },
-            "appGatewayCertPassword": {
               "type": "securestring"
             },
             "tags": {
@@ -190,21 +152,160 @@
             "resourcePrefix": "[format('{0}-{1}', parameters('applicationName'), parameters('environment'))]",
             "wfeVmName": "[format('{0}-wfe-{1}', variables('resourcePrefix'), variables('uniqueSuffix'))]",
             "sqlVmName": "[format('{0}-sqlvm-{1}', variables('resourcePrefix'), variables('uniqueSuffix'))]",
-            "appGatewayName": "[format('{0}-appgw-{1}', variables('resourcePrefix'), variables('uniqueSuffix'))]",
-            "publicIpAppGwName": "[format('{0}-pip-appgw-{1}', variables('resourcePrefix'), variables('uniqueSuffix'))]"
+            "nsgFrontendName": "[format('{0}-nsg-frontend', variables('resourcePrefix'))]",
+            "nsgDataName": "[format('{0}-nsg-data', variables('resourcePrefix'))]"
           },
           "resources": [
             {
-              "type": "Microsoft.Network/publicIPAddresses",
+              "type": "Microsoft.Network/networkSecurityGroups",
               "apiVersion": "2023-11-01",
-              "name": "[variables('publicIpAppGwName')]",
+              "name": "[variables('nsgFrontendName')]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
-              "sku": {
-                "name": "Standard"
-              },
               "properties": {
-                "publicIPAllocationMethod": "Static"
+                "securityRules": [
+                  {
+                    "name": "AllowHTTP",
+                    "properties": {
+                      "protocol": "Tcp",
+                      "sourcePortRange": "*",
+                      "destinationPortRange": "80",
+                      "sourceAddressPrefix": "*",
+                      "destinationAddressPrefix": "*",
+                      "access": "Allow",
+                      "priority": 100,
+                      "direction": "Inbound"
+                    }
+                  },
+                  {
+                    "name": "AllowHTTPS",
+                    "properties": {
+                      "protocol": "Tcp",
+                      "sourcePortRange": "*",
+                      "destinationPortRange": "443",
+                      "sourceAddressPrefix": "*",
+                      "destinationAddressPrefix": "*",
+                      "access": "Allow",
+                      "priority": 110,
+                      "direction": "Inbound"
+                    }
+                  },
+                  {
+                    "name": "AllowRDPFromAllowedIps",
+                    "properties": {
+                      "protocol": "Tcp",
+                      "sourcePortRange": "*",
+                      "destinationPortRange": "3389",
+                      "sourceAddressPrefixes": "[parameters('allowedRdpIps')]",
+                      "destinationAddressPrefix": "*",
+                      "access": "Allow",
+                      "priority": 120,
+                      "direction": "Inbound"
+                    }
+                  },
+                  {
+                    "name": "AllowWinRMHTTP",
+                    "properties": {
+                      "protocol": "Tcp",
+                      "sourcePortRange": "*",
+                      "destinationPortRange": "5985",
+                      "sourceAddressPrefix": "VirtualNetwork",
+                      "destinationAddressPrefix": "*",
+                      "access": "Allow",
+                      "priority": 130,
+                      "direction": "Inbound"
+                    }
+                  },
+                  {
+                    "name": "AllowWinRMHTTPS",
+                    "properties": {
+                      "protocol": "Tcp",
+                      "sourcePortRange": "*",
+                      "destinationPortRange": "5986",
+                      "sourceAddressPrefix": "VirtualNetwork",
+                      "destinationAddressPrefix": "*",
+                      "access": "Allow",
+                      "priority": 140,
+                      "direction": "Inbound"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Network/networkSecurityGroups",
+              "apiVersion": "2023-11-01",
+              "name": "[variables('nsgDataName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "securityRules": [
+                  {
+                    "name": "AllowSQLFromWebVM",
+                    "properties": {
+                      "protocol": "Tcp",
+                      "sourcePortRange": "*",
+                      "destinationPortRange": "1433",
+                      "sourceAddressPrefix": "10.50.0.0/24",
+                      "destinationAddressPrefix": "*",
+                      "access": "Allow",
+                      "priority": 100,
+                      "direction": "Inbound"
+                    }
+                  },
+                  {
+                    "name": "AllowSQLFromVirtualNetwork",
+                    "properties": {
+                      "protocol": "Tcp",
+                      "sourcePortRange": "*",
+                      "destinationPortRange": "1433",
+                      "sourceAddressPrefix": "VirtualNetwork",
+                      "destinationAddressPrefix": "*",
+                      "access": "Allow",
+                      "priority": 105,
+                      "direction": "Inbound"
+                    }
+                  },
+                  {
+                    "name": "AllowRDPFromAllowedIps",
+                    "properties": {
+                      "protocol": "Tcp",
+                      "sourcePortRange": "*",
+                      "destinationPortRange": "3389",
+                      "sourceAddressPrefixes": "[parameters('allowedRdpIps')]",
+                      "destinationAddressPrefix": "*",
+                      "access": "Allow",
+                      "priority": 110,
+                      "direction": "Inbound"
+                    }
+                  },
+                  {
+                    "name": "AllowWinRMHTTP",
+                    "properties": {
+                      "protocol": "Tcp",
+                      "sourcePortRange": "*",
+                      "destinationPortRange": "5985",
+                      "sourceAddressPrefix": "VirtualNetwork",
+                      "destinationAddressPrefix": "*",
+                      "access": "Allow",
+                      "priority": 120,
+                      "direction": "Inbound"
+                    }
+                  },
+                  {
+                    "name": "AllowWinRMHTTPS",
+                    "properties": {
+                      "protocol": "Tcp",
+                      "sourcePortRange": "*",
+                      "destinationPortRange": "5986",
+                      "sourceAddressPrefix": "VirtualNetwork",
+                      "destinationAddressPrefix": "*",
+                      "access": "Allow",
+                      "priority": 130,
+                      "direction": "Inbound"
+                    }
+                  }
+                ]
               }
             },
             {
@@ -214,6 +315,9 @@
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
               "properties": {
+                "networkSecurityGroup": {
+                  "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgFrontendName'))]"
+                },
                 "ipConfigurations": [
                   {
                     "name": "ipconfig1",
@@ -221,20 +325,18 @@
                       "subnet": {
                         "id": "[parameters('frontendSubnetId')]"
                       },
-                      "privateIPAllocationMethod": "Dynamic",
-                      "applicationGatewayBackendAddressPools": [
-                        {
-                          "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', variables('appGatewayName'), 'wfe-backend-pool')]"
-                        }
-                      ]
+                      "privateIPAllocationMethod": "Dynamic"
                     }
                   }
                 ]
-              }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgFrontendName'))]"
+              ]
             },
             {
               "type": "Microsoft.Compute/virtualMachines",
-              "apiVersion": "2023-09-01",
+              "apiVersion": "2023-07-01",
               "name": "[variables('wfeVmName')]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
@@ -243,7 +345,7 @@
                   "vmSize": "[parameters('vmSize')]"
                 },
                 "osProfile": {
-                  "computerName": "[take(format('{0}-wfe', variables('resourcePrefix')), 15)]",
+                  "computerName": "[variables('wfeVmName')]",
                   "adminUsername": "[parameters('adminUsername')]",
                   "adminPassword": "[parameters('adminPassword')]",
                   "windowsConfiguration": {
@@ -252,18 +354,17 @@
                   }
                 },
                 "storageProfile": {
-                  "osDisk": {
-                    "createOption": "FromImage",
-                    "caching": "ReadWrite",
-                    "managedDisk": {
-                      "storageAccountType": "Premium_LRS"
-                    }
-                  },
                   "imageReference": {
                     "publisher": "MicrosoftWindowsServer",
                     "offer": "WindowsServer",
                     "sku": "2022-datacenter-azure-edition",
                     "version": "latest"
+                  },
+                  "osDisk": {
+                    "createOption": "FromImage",
+                    "managedDisk": {
+                      "storageAccountType": "Premium_LRS"
+                    }
                   }
                 },
                 "networkProfile": {
@@ -275,7 +376,6 @@
                 }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Network/applicationGateways', variables('appGatewayName'))]",
                 "[resourceId('Microsoft.Network/networkInterfaces', format('{0}-nic', variables('wfeVmName')))]"
               ]
             },
@@ -286,6 +386,9 @@
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
               "properties": {
+                "networkSecurityGroup": {
+                  "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgDataName'))]"
+                },
                 "ipConfigurations": [
                   {
                     "name": "ipconfig1",
@@ -297,11 +400,14 @@
                     }
                   }
                 ]
-              }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgDataName'))]"
+              ]
             },
             {
               "type": "Microsoft.Compute/virtualMachines",
-              "apiVersion": "2023-09-01",
+              "apiVersion": "2023-07-01",
               "name": "[variables('sqlVmName')]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
@@ -310,7 +416,7 @@
                   "vmSize": "[parameters('sqlVmSize')]"
                 },
                 "osProfile": {
-                  "computerName": "[take(format('{0}-sql', variables('resourcePrefix')), 15)]",
+                  "computerName": "[variables('sqlVmName')]",
                   "adminUsername": "[parameters('adminUsername')]",
                   "adminPassword": "[parameters('adminPassword')]",
                   "windowsConfiguration": {
@@ -319,34 +425,31 @@
                   }
                 },
                 "storageProfile": {
+                  "imageReference": {
+                    "publisher": "MicrosoftSQLServer",
+                    "offer": "sql2022-ws2022",
+                    "sku": "standard",
+                    "version": "latest"
+                  },
                   "osDisk": {
                     "createOption": "FromImage",
-                    "caching": "ReadWrite",
                     "managedDisk": {
                       "storageAccountType": "Premium_LRS"
                     }
                   },
-                  "imageReference": {
-                    "publisher": "MicrosoftSQLServer",
-                    "offer": "sql2022-ws2022",
-                    "sku": "standard-gen2",
-                    "version": "latest"
-                  },
                   "dataDisks": [
                     {
-                      "createOption": "Empty",
                       "lun": 0,
+                      "createOption": "Empty",
                       "diskSizeGB": 128,
-                      "caching": "ReadOnly",
                       "managedDisk": {
                         "storageAccountType": "Premium_LRS"
                       }
                     },
                     {
-                      "createOption": "Empty",
                       "lun": 1,
+                      "createOption": "Empty",
                       "diskSizeGB": 128,
-                      "caching": "None",
                       "managedDisk": {
                         "storageAccountType": "Premium_LRS"
                       }
@@ -367,207 +470,27 @@
             },
             {
               "type": "Microsoft.SqlVirtualMachine/sqlVirtualMachines",
-              "apiVersion": "2023-10-01",
-              "name": "[variables('sqlVmName')]",
+              "apiVersion": "2023-10-01-preview",
+              "name": "[format('{0}-sqlvm-config', variables('sqlVmName'))]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
               "properties": {
                 "virtualMachineResourceId": "[resourceId('Microsoft.Compute/virtualMachines', variables('sqlVmName'))]",
                 "sqlManagement": "Full",
-                "sqlServerLicenseType": "PAYG",
-                "storageConfigurationSettings": {
-                  "diskConfigurationType": "NEW",
-                  "storageWorkloadType": "GENERAL",
-                  "sqlDataSettings": {
-                    "luns": [
-                      0
-                    ],
-                    "defaultFilePath": "F:\\Data"
-                  },
-                  "sqlLogSettings": {
-                    "luns": [
-                      1
-                    ],
-                    "defaultFilePath": "G:\\Log"
-                  }
+                "sqlServerLicenseType": "AHUB",
+                "wsfcStaticIp": "",
+                "autoBackupSettings": {
+                  "enable": false
                 },
                 "serverConfigurationsManagementSettings": {
                   "sqlConnectivityUpdateSettings": {
-                    "connectivityType": "PRIVATE",
+                    "connectivityType": "Private",
                     "port": 1433
                   }
                 }
               },
               "dependsOn": [
                 "[resourceId('Microsoft.Compute/virtualMachines', variables('sqlVmName'))]"
-              ]
-            },
-            {
-              "type": "Microsoft.Network/applicationGateways",
-              "apiVersion": "2023-11-01",
-              "name": "[variables('appGatewayName')]",
-              "location": "[parameters('location')]",
-              "tags": "[parameters('tags')]",
-              "properties": {
-                "sku": {
-                  "name": "Standard_v2",
-                  "tier": "Standard_v2",
-                  "capacity": 2
-                },
-                "gatewayIPConfigurations": [
-                  {
-                    "name": "appGatewayIpConfig",
-                    "properties": {
-                      "subnet": {
-                        "id": "[parameters('frontendSubnetId')]"
-                      }
-                    }
-                  }
-                ],
-                "frontendIPConfigurations": [
-                  {
-                    "name": "appGatewayFrontendIP",
-                    "properties": {
-                      "publicIPAddress": {
-                        "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAppGwName'))]"
-                      }
-                    }
-                  }
-                ],
-                "frontendPorts": [
-                  {
-                    "name": "port_443",
-                    "properties": {
-                      "port": 443
-                    }
-                  },
-                  {
-                    "name": "port_80",
-                    "properties": {
-                      "port": 80
-                    }
-                  }
-                ],
-                "sslCertificates": [
-                  {
-                    "name": "appGatewaySslCert",
-                    "properties": {
-                      "data": "[parameters('appGatewayCertData')]",
-                      "password": "[parameters('appGatewayCertPassword')]"
-                    }
-                  }
-                ],
-                "backendAddressPools": [
-                  {
-                    "name": "wfe-backend-pool",
-                    "properties": {
-                      "backendAddresses": []
-                    }
-                  }
-                ],
-                "backendHttpSettingsCollection": [
-                  {
-                    "name": "appGatewayBackendHttpSettings",
-                    "properties": {
-                      "port": 80,
-                      "protocol": "Http",
-                      "cookieBasedAffinity": "Disabled",
-                      "pickHostNameFromBackendAddress": true,
-                      "probe": {
-                        "id": "[resourceId('Microsoft.Network/applicationGateways/probes', variables('appGatewayName'), 'health-probe')]"
-                      }
-                    }
-                  }
-                ],
-                "httpListeners": [
-                  {
-                    "name": "appGatewayHttpsListener",
-                    "properties": {
-                      "frontendIPConfiguration": {
-                        "id": "[resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', variables('appGatewayName'), 'appGatewayFrontendIP')]"
-                      },
-                      "frontendPort": {
-                        "id": "[resourceId('Microsoft.Network/applicationGateways/frontendPorts', variables('appGatewayName'), 'port_443')]"
-                      },
-                      "protocol": "Https",
-                      "sslCertificate": {
-                        "id": "[resourceId('Microsoft.Network/applicationGateways/sslCertificates', variables('appGatewayName'), 'appGatewaySslCert')]"
-                      }
-                    }
-                  },
-                  {
-                    "name": "appGatewayHttpListener",
-                    "properties": {
-                      "frontendIPConfiguration": {
-                        "id": "[resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', variables('appGatewayName'), 'appGatewayFrontendIP')]"
-                      },
-                      "frontendPort": {
-                        "id": "[resourceId('Microsoft.Network/applicationGateways/frontendPorts', variables('appGatewayName'), 'port_80')]"
-                      },
-                      "protocol": "Http"
-                    }
-                  }
-                ],
-                "requestRoutingRules": [
-                  {
-                    "name": "httpsRoutingRule",
-                    "properties": {
-                      "ruleType": "Basic",
-                      "priority": 100,
-                      "httpListener": {
-                        "id": "[resourceId('Microsoft.Network/applicationGateways/httpListeners', variables('appGatewayName'), 'appGatewayHttpsListener')]"
-                      },
-                      "backendAddressPool": {
-                        "id": "[resourceId('Microsoft.Network/applicationGateways/backendAddressPools', variables('appGatewayName'), 'wfe-backend-pool')]"
-                      },
-                      "backendHttpSettings": {
-                        "id": "[resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', variables('appGatewayName'), 'appGatewayBackendHttpSettings')]"
-                      }
-                    }
-                  },
-                  {
-                    "name": "httpToHttpsRedirect",
-                    "properties": {
-                      "ruleType": "Basic",
-                      "priority": 200,
-                      "httpListener": {
-                        "id": "[resourceId('Microsoft.Network/applicationGateways/httpListeners', variables('appGatewayName'), 'appGatewayHttpListener')]"
-                      },
-                      "redirectConfiguration": {
-                        "id": "[resourceId('Microsoft.Network/applicationGateways/redirectConfigurations', variables('appGatewayName'), 'httpToHttpsRedirect')]"
-                      }
-                    }
-                  }
-                ],
-                "redirectConfigurations": [
-                  {
-                    "name": "httpToHttpsRedirect",
-                    "properties": {
-                      "redirectType": "Permanent",
-                      "targetListener": {
-                        "id": "[resourceId('Microsoft.Network/applicationGateways/httpListeners', variables('appGatewayName'), 'appGatewayHttpsListener')]"
-                      },
-                      "includePath": true,
-                      "includeQueryString": true
-                    }
-                  }
-                ],
-                "probes": [
-                  {
-                    "name": "health-probe",
-                    "properties": {
-                      "protocol": "Http",
-                      "path": "/",
-                      "interval": 30,
-                      "timeout": 30,
-                      "unhealthyThreshold": 3,
-                      "pickHostNameFromBackendHttpSettings": true
-                    }
-                  }
-                ]
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAppGwName'))]"
               ]
             }
           ],
@@ -595,67 +518,36 @@
             "sqlVmPrivateIp": {
               "type": "string",
               "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', format('{0}-nic', variables('sqlVmName'))), '2023-11-01').ipConfigurations[0].properties.privateIPAddress]"
-            },
-            "appGatewayId": {
-              "type": "string",
-              "value": "[resourceId('Microsoft.Network/applicationGateways', variables('appGatewayName'))]"
-            },
-            "appGatewayName": {
-              "type": "string",
-              "value": "[variables('appGatewayName')]"
-            },
-            "appGatewayPublicIp": {
-              "type": "string",
-              "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAppGwName')), '2023-11-01').ipAddress]"
             }
           }
         }
-      },
-      "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName'))]"
-      ]
+      }
     }
   ],
   "outputs": {
-    "resourceGroupName": {
-      "type": "string",
-      "value": "[parameters('resourceGroupName')]"
-    },
     "wfeVmId": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.wfeVmId.value]"
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.wfeVmId.value]"
     },
     "wfeVmName": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.wfeVmName.value]"
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.wfeVmName.value]"
     },
     "wfeVmPrivateIp": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.wfeVmPrivateIp.value]"
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.wfeVmPrivateIp.value]"
     },
     "sqlVmId": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.sqlVmId.value]"
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.sqlVmId.value]"
     },
     "sqlVmName": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.sqlVmName.value]"
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.sqlVmName.value]"
     },
     "sqlVmPrivateIp": {
       "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.sqlVmPrivateIp.value]"
-    },
-    "appGatewayId": {
-      "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.appGatewayId.value]"
-    },
-    "appGatewayName": {
-      "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.appGatewayName.value]"
-    },
-    "appGatewayPublicIp": {
-      "type": "string",
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('resourceGroupName')), 'Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.appGatewayPublicIp.value]"
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'iaas-resources-deployment'), '2025-04-01').outputs.sqlVmPrivateIp.value]"
     }
   }
 }
