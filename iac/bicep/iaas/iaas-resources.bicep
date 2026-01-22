@@ -28,6 +28,7 @@ var resourcePrefix = '${applicationName}-${environment}'
 
 var wfeVmName = '${resourcePrefix}-wfe-${uniqueSuffix}'
 var sqlVmName = '${resourcePrefix}-sqlvm-${uniqueSuffix}'
+var deployAppGateway = gatewaySubnetId != ''
 var appGatewayName = '${resourcePrefix}-appgw-${uniqueSuffix}'
 var publicIpAppGwName = '${resourcePrefix}-pip-appgw-${uniqueSuffix}'
 var nsgFrontendName = '${resourcePrefix}-nsg-frontend'
@@ -227,9 +228,7 @@ resource wfeNic 'Microsoft.Network/networkInterfaces@2023-11-01' = {
       }
     ]
   }
-  dependsOn: [
-    appGateway
-  ]
+  dependsOn: deployAppGateway ? [appGateway] : []
 }
 
 resource wfeVm 'Microsoft.Compute/virtualMachines@2023-09-01' = {
@@ -636,6 +635,6 @@ output wfeVmPrivateIp string = wfeNic.properties.ipConfigurations[0].properties.
 output sqlVmId string = sqlVm.id
 output sqlVmName string = sqlVm.name
 output sqlVmPrivateIp string = sqlVmNic.properties.ipConfigurations[0].properties.privateIPAddress
-output appGatewayId string = appGateway.id
-output appGatewayName string = appGateway.name
-output appGatewayPublicIp string = publicIpAppGw.properties.ipAddress
+output appGatewayId string = deployAppGateway ? appGateway.id : ''
+output appGatewayName string = deployAppGateway ? appGateway.name : ''
+output appGatewayPublicIp string = deployAppGateway ? publicIpAppGw.properties.ipAddress : ''

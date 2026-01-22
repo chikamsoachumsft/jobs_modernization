@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.39.26.7824",
-      "templateHash": "18347139433640365309"
+      "templateHash": "11551591201329234070"
     }
   },
   "parameters": {
@@ -61,6 +61,7 @@
     "resourcePrefix": "[format('{0}-{1}', parameters('applicationName'), parameters('environment'))]",
     "wfeVmName": "[format('{0}-wfe-{1}', variables('resourcePrefix'), variables('uniqueSuffix'))]",
     "sqlVmName": "[format('{0}-sqlvm-{1}', variables('resourcePrefix'), variables('uniqueSuffix'))]",
+    "deployAppGateway": "[not(equals(parameters('gatewaySubnetId'), ''))]",
     "appGatewayName": "[format('{0}-appgw-{1}', variables('resourcePrefix'), variables('uniqueSuffix'))]",
     "publicIpAppGwName": "[format('{0}-pip-appgw-{1}', variables('resourcePrefix'), variables('uniqueSuffix'))]",
     "nsgFrontendName": "[format('{0}-nsg-frontend', variables('resourcePrefix'))]",
@@ -553,15 +554,15 @@
     },
     "appGatewayId": {
       "type": "string",
-      "value": "[resourceId('Microsoft.Network/applicationGateways', variables('appGatewayName'))]"
+      "value": "[if(variables('deployAppGateway'), resourceId('Microsoft.Network/applicationGateways', variables('appGatewayName')), '')]"
     },
     "appGatewayName": {
       "type": "string",
-      "value": "[variables('appGatewayName')]"
+      "value": "[if(variables('deployAppGateway'), variables('appGatewayName'), '')]"
     },
     "appGatewayPublicIp": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAppGwName')), '2023-11-01').ipAddress]"
+      "value": "[if(variables('deployAppGateway'), reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAppGwName')), '2023-11-01').ipAddress, '')]"
     }
   }
 }
